@@ -46,17 +46,19 @@ DEMO_ACCOUNTS = [
 async def seed_demo_accounts(session: AsyncSession) -> int:
     created = 0
     for account in DEMO_ACCOUNTS:
-        existing = await session.execute(select(User).where(User.email == account["email"]))
-        if existing.scalar_one_or_none():
-            continue
-
-        user = User(
-            id=uuid.uuid4(),
+        user_id = uuid.uuid4()
+        stmt = insert(User).values(
+            id=user_id,
             email=account["email"],
             password_hash=hash_password(account["password"]),
-        )
-        session.add(user)
+        ).on_conflict_do_nothing(index_elements=["email"])
+        await session.execute(stmt)
         await session.flush()
+
+        result = await session.execute(select(User).where(User.email == account["email"]))
+        user = result.scalar_one_or_none()
+        if not user:
+            continue
 
         for movie_id, value in account["ratings"]:
             stmt = insert(Rating).values(
