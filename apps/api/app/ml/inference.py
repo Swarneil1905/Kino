@@ -154,7 +154,7 @@ class RecommendationEngine:
 
         gvec = genre_vector(list(movie.genres or []), self.genre_encoder)
         decade = ((movie.release_year or 2000) - 1920) / 110.0
-        pop = float(np.log1p(movie.popularity_score or 1.0))
+        pop = float(np.log1p(float(movie.popularity_score or 1.0)))
 
         with torch.no_grad():
             item_emb = self.item_tower(
@@ -180,7 +180,7 @@ class RecommendationEngine:
                 continue
             gvec = genre_vector(list(movie.genres or []), self.genre_encoder)
             decade = ((movie.release_year or 2000) - 1920) / 110.0
-            pop = float(np.log1p(movie.popularity_score or 1.0))
+            pop = float(np.log1p(float(movie.popularity_score or 1.0)))
             primary_genre = (movie.genres or ["Drama"])[0]
             gscore = float(user_emb_np[GENRE_TO_IDX.get(primary_genre, 0)] if primary_genre in GENRE_TO_IDX else 0)
 
