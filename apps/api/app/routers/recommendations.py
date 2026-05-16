@@ -16,7 +16,7 @@ async def get_recommendations(
     request: Request,
     db: Annotated[AsyncSession, Depends(get_db)],
     user: Annotated[User | None, Depends(get_optional_user)],
-    limit: int = Query(default=20, ge=1, le=50),
+    limit: int = Query(default=20, ge=1, le=100),
 ) -> RecommendationResponse:
     engine = request.app.state.recommendation_engine
     user_id = user.id if user else None
@@ -41,7 +41,7 @@ async def refresh_recommendations(
     request: Request,
     db: Annotated[AsyncSession, Depends(get_db)],
     user: Annotated[User, Depends(get_current_user)],
-    limit: int = Query(default=20, ge=1, le=50),
+    limit: int = Query(default=20, ge=1, le=100),
 ) -> RecommendationResponse:
     engine = request.app.state.recommendation_engine
     movies, cache_hit, computed_at = await engine.recommend(db, user.id, limit=limit, force_refresh=True)
