@@ -14,31 +14,35 @@ from app.db.session import AsyncSessionLocal
 from app.models.rating import Rating
 from app.models.user import User
 
+# Movie IDs confirmed present in MovieLens dataset (from movie_id_map.json):
+# 1=Toy Story, 2=Jumanji, 3=Grumpier Old Men, 5=Father of Bride II,
+# 6=Heat, 7=Sabrina, 10=GoldenEye, 11=American President, 16=Casino, 17=Sense & Sensibility
+# NOTE: IDs 4, 8, 9 do not exist in our MovieLens subset — do not use them.
 DEMO_ACCOUNTS = [
     {
         "email": "demo-scifi@kino.dev",
         "password": "demopass123",
-        "ratings": [(1, 1), (7, 1), (8, 1), (2, 1), (3, -1), (10, 1), (4, 1), (5, 1), (6, -1), (9, 1)],
+        "ratings": [(1, 1), (7, 1), (16, 1), (2, 1), (3, -1), (10, 1), (6, 1), (5, 1), (17, -1), (11, 1)],
     },
     {
         "email": "demo-action@kino.dev",
         "password": "demopass123",
-        "ratings": [(4, 1), (9, 1), (1, 1), (7, 1), (10, -1), (2, 1), (3, 1), (5, 1), (6, 1), (8, -1)],
+        "ratings": [(6, 1), (11, 1), (1, 1), (7, 1), (10, -1), (2, 1), (3, 1), (5, 1), (17, 1), (16, -1)],
     },
     {
         "email": "demo-drama@kino.dev",
         "password": "demopass123",
-        "ratings": [(3, 1), (6, 1), (10, 1), (2, 1), (8, 1), (1, -1), (4, -1), (5, 1), (7, 1), (9, -1)],
+        "ratings": [(3, 1), (17, 1), (10, 1), (2, 1), (16, 1), (1, -1), (6, -1), (5, 1), (7, 1), (11, -1)],
     },
     {
         "email": "demo-animation@kino.dev",
         "password": "demopass123",
-        "ratings": [(5, 1), (2, 1), (8, 1), (1, 1), (7, -1), (3, 1), (6, 1), (4, 1), (9, 1), (10, 1)],
+        "ratings": [(5, 1), (2, 1), (16, 1), (1, 1), (7, -1), (3, 1), (17, 1), (6, 1), (11, 1), (10, 1)],
     },
     {
         "email": "demo-mixed@kino.dev",
         "password": "demopass123",
-        "ratings": [(1, 1), (2, -1), (3, 1), (4, 1), (5, -1), (6, 1), (7, 1), (8, -1), (9, 1), (10, 1)],
+        "ratings": [(1, 1), (2, -1), (3, 1), (6, 1), (5, -1), (17, 1), (7, 1), (16, -1), (11, 1), (10, 1)],
     },
 ]
 

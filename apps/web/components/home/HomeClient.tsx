@@ -14,8 +14,8 @@ type HomeClientProps = {
 }
 
 export function HomeClient({ featured, fallbackRows, initialRatings = {} }: HomeClientProps) {
-  const { rows, status } = useRecommendations(fallbackRows)
-  const { ratings, rate, pending } = useRatings(initialRatings)
+  const { rows, status, softRefresh } = useRecommendations(fallbackRows)
+  const { ratings, rate, pending } = useRatings(initialRatings, softRefresh)
 
   return (
     <main className="min-h-screen bg-netflix-black">
