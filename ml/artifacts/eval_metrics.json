@@ -1,6 +1,6 @@
 {
-  "recall_at_10": 0.0031645569620253164,
-  "ndcg_at_10": 0.0012242177444131063,
-  "ips_ndcg_at_10": 0.0013101200529373577,
-  "model_version": "demo-synthetic-v1"
+  "recall_at_10": 0.011562464530598235,
+  "ndcg_at_10": 0.020678779513049052,
+  "ips_ndcg_at_10": 0.020071013984774476,
+  "model_version": "movielens-25m-v1"
 }
