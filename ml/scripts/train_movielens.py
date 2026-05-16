@@ -63,24 +63,48 @@ DEVICE = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 # ── Data loading ──────────────────────────────────────────────────────────────
 
 def load_and_filter(data_dir: Path) -> tuple[pd.DataFrame, pd.DataFrame]:
-    print("Loading MovieLens 25M...")
-    t0 = time.time()
-    ratings = pd.read_csv(data_dir / "ratings.csv")
-    movies = pd.read_csv(data_dir / "movies.csv")
-    print(f"  Loaded {len(ratings):,} ratings, {len(movies):,} movies in {time.time()-t0:.1f}s")
+    """Two-pass chunked loader — never allocates the full 25M rows at once."""
+    CHUNK = 500_000
+    CSV_DTYPES = {
+        "userId": "int32",
+        "movieId": "int32",
+        "rating": "float32",
+        "timestamp": "int32",
+    }
+    ratings_path = data_dir / "ratings.csv"
 
-    # Keep top N most-rated movies
-    top_movies = ratings["movieId"].value_counts().head(TOP_MOVIES).index
-    ratings = ratings[ratings["movieId"].isin(top_movies)]
+    # ── Pass 1: count movie frequencies ──────────────────────────────────────
+    print("Loading MovieLens 25M — pass 1/2 (movie counts)...")
+    t0 = time.time()
+    movie_counts: dict[int, int] = {}
+    for chunk in pd.read_csv(ratings_path, dtype=CSV_DTYPES, chunksize=CHUNK):
+        for mid, cnt in chunk["movieId"].value_counts().items():
+            movie_counts[mid] = movie_counts.get(mid, 0) + cnt
+    top_movie_set = set(
+        sorted(movie_counts, key=lambda x: movie_counts[x], reverse=True)[:TOP_MOVIES]
+    )
+    print(f"  Pass 1 done in {time.time()-t0:.1f}s — top {len(top_movie_set):,} movies identified")
+
+    # ── Pass 2: load only rows for top movies, then filter top users ──────────
+    print("Loading MovieLens 25M — pass 2/2 (filter rows)...")
+    t1 = time.time()
+    kept: list[pd.DataFrame] = []
+    for chunk in pd.read_csv(ratings_path, dtype=CSV_DTYPES, chunksize=CHUNK):
+        filtered = chunk[chunk["movieId"].isin(top_movie_set)]
+        if len(filtered):
+            kept.append(filtered)
+    ratings = pd.concat(kept, ignore_index=True)
+    del kept
+    print(f"  Pass 2 done in {time.time()-t1:.1f}s — {len(ratings):,} rows kept")
 
     # Keep top N most-active users
     top_users = ratings["userId"].value_counts().head(TOP_USERS).index
-    ratings = ratings[ratings["userId"].isin(top_users)]
+    ratings = ratings[ratings["userId"].isin(top_users)].copy()
 
-    # Only keep movies that still have ratings after user filter
+    movies = pd.read_csv(data_dir / "movies.csv")
     movies = movies[movies["movieId"].isin(ratings["movieId"].unique())]
 
-    print(f"  Filtered to {len(ratings):,} ratings | "
+    print(f"  Final: {len(ratings):,} ratings | "
           f"{ratings['userId'].nunique():,} users | "
           f"{ratings['movieId'].nunique():,} movies")
     return ratings, movies
