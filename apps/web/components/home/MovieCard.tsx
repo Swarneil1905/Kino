@@ -69,8 +69,11 @@ export function MovieCard({ movie, expandDirection = "center", userRating = null
       }}
     >
       <div className={cn("aspect-[2/3] rounded bg-kino-surface bg-cover bg-center transition-opacity", expanded && "opacity-0")} style={{ backgroundImage: poster ? `url(${poster})` : undefined }}>
-        {!poster && <div className="grid h-full place-items-center p-4 text-center text-sm font-bold text-white/70">{movie.title}</div>}
+        {!poster && <div className="grid h-full place-items-center p-4 text-center text-xs font-semibold text-white/60">{movie.title}</div>}
       </div>
+      {!expanded && (
+        <p className="mt-1 truncate text-center text-xs text-white/60">{movie.title}</p>
+      )}
 
       <AnimatePresence>
         {expanded && (

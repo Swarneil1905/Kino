@@ -23,7 +23,6 @@ export function useRatings(initial: RatingStore = {}) {
 
       try {
         await api.ratings.submit(movieId, value)
-        api.recommendations.refresh().catch(() => {})
       } catch {
         setRatings((prev) => {
           const next = { ...prev }
