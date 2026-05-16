@@ -34,8 +34,12 @@ export function HeroBanner({ movie }: HeroBannerProps) {
             : "linear-gradient(120deg, #1b1b1b 0%, #303030 50%, #101010 100%)",
         }}
       />
-      <div className="absolute inset-0 bg-gradient-to-r from-kino-background/85 to-transparent" />
-      <div className="absolute inset-0 bg-gradient-to-t from-kino-background from-0% to-transparent to-35%" />
+      {/* Left vignette — makes text legible against any backdrop */}
+      <div className="absolute inset-0 bg-gradient-to-r from-kino-background/90 via-kino-background/40 to-transparent" />
+      {/* Bottom fade — blends into content rows */}
+      <div className="absolute inset-0 bg-gradient-to-t from-kino-background via-transparent to-transparent" />
+      {/* Top fade — softens top edge behind navbar */}
+      <div className="absolute inset-x-0 top-0 h-32 bg-gradient-to-b from-black/60 to-transparent" />
 
       <motion.div
         className="absolute bottom-28 left-5 max-w-[500px] md:left-14"
