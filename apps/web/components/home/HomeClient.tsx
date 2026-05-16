@@ -1,8 +1,11 @@
 "use client"
 
+import { useState } from "react"
+
 import { HeroBanner } from "@/components/home/HeroBanner"
 import { ContentRow } from "@/components/home/ContentRow"
 import { SkeletonRow } from "@/components/ui/SkeletonRow"
+import { useLikedMovies } from "@/hooks/useLikedMovies"
 import { useRecommendations } from "@/hooks/useRecommendations"
 import { useRatings } from "@/hooks/useRatings"
 import type { ContentRowData, Movie, RatingStore } from "@/lib/types"
@@ -14,8 +17,18 @@ type HomeClientProps = {
 }
 
 export function HomeClient({ featured, fallbackRows, initialRatings = {} }: HomeClientProps) {
-  const { rows, status, softRefresh } = useRecommendations(fallbackRows)
-  const { ratings, rate, pending } = useRatings(initialRatings, softRefresh)
+  const [refreshKey, setRefreshKey] = useState(0)
+
+  const handleRatingCommit = () => setRefreshKey((k) => k + 1)
+
+  const { rows, status } = useRecommendations(fallbackRows, refreshKey)
+  const { likedMovies } = useLikedMovies(refreshKey)
+  const { ratings, rate, pending } = useRatings(initialRatings, handleRatingCommit)
+
+  const likedRow: ContentRowData | null =
+    likedMovies.length > 0
+      ? { id: "liked", title: "👍 Movies You Liked", movies: likedMovies }
+      : null
 
   return (
     <main className="min-h-screen bg-netflix-black">
@@ -26,6 +39,9 @@ export function HomeClient({ featured, fallbackRows, initialRatings = {} }: Home
           : rows.map((row) => (
               <ContentRow key={row.id} row={row} ratings={ratings} pending={pending} onRate={rate} />
             ))}
+        {likedRow && (
+          <ContentRow row={likedRow} ratings={ratings} pending={pending} onRate={rate} />
+        )}
       </div>
     </main>
   )

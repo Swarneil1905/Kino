@@ -1,16 +1,35 @@
 "use client"
 
-import { Bell, Search } from "lucide-react"
+import { Bell, LogOut, Search } from "lucide-react"
 import Link from "next/link"
-import { useState } from "react"
+import { useRouter } from "next/navigation"
+import { useEffect, useState } from "react"
 
 import { useScrollPosition } from "@/hooks/useScrollPosition"
 import { cn } from "@/lib/utils"
 
 export function Navbar() {
   const scrollY = useScrollPosition()
+  const router = useRouter()
   const [searchOpen, setSearchOpen] = useState(false)
   const [searchQuery, setSearchQuery] = useState("")
+  const [isLoggedIn, setIsLoggedIn] = useState(false)
+  const [userInitial, setUserInitial] = useState("K")
+
+  useEffect(() => {
+    const token = localStorage.getItem("kino_token")
+    const email = localStorage.getItem("kino_email")
+    setIsLoggedIn(!!token)
+    if (email) setUserInitial(email[0].toUpperCase())
+  }, [])
+
+  const handleSignOut = () => {
+    localStorage.removeItem("kino_token")
+    localStorage.removeItem("kino_user_id")
+    localStorage.removeItem("kino_email")
+    setIsLoggedIn(false)
+    router.push("/login")
+  }
 
   return (
     <header
@@ -24,35 +43,40 @@ export function Navbar() {
           Kino
         </Link>
         <nav className="hidden items-center gap-5 text-sm text-white/70 md:flex">
-          <Link href="/" className="transition-colors hover:text-white">
-            Home
-          </Link>
-          <Link href="/" className="transition-colors hover:text-white">
-            Movies
-          </Link>
-          <Link href="/metrics" className="transition-colors hover:text-white">
-            Metrics
-          </Link>
-          <Link href="/login" className="transition-colors hover:text-white">
-            Sign In
-          </Link>
+          <Link href="/" className="transition-colors hover:text-white">Home</Link>
+          <Link href="/" className="transition-colors hover:text-white">Movies</Link>
+          <Link href="/metrics" className="transition-colors hover:text-white">Metrics</Link>
+          {!isLoggedIn && (
+            <Link href="/login" className="transition-colors hover:text-white">Sign In</Link>
+          )}
         </nav>
       </div>
 
       <div className="flex items-center gap-4">
         <div className="flex items-center border border-white/70 bg-black/30">
-          <button className="grid h-8 w-8 place-items-center" onClick={() => setSearchOpen((value) => !value)} aria-label="Search">
+          <button className="grid h-8 w-8 place-items-center" onClick={() => setSearchOpen((v) => !v)} aria-label="Search">
             <Search size={18} />
           </button>
           <input
             value={searchQuery}
-            onChange={(event) => setSearchQuery(event.target.value)}
+            onChange={(e) => setSearchQuery(e.target.value)}
             className={cn("h-8 bg-transparent text-sm outline-none transition-[width] duration-300", searchOpen ? "w-44 px-2" : "w-0 px-0")}
             placeholder="Titles, genres"
           />
         </div>
         <Bell size={20} />
-        <div className="grid h-8 w-8 place-items-center rounded bg-kino-red text-xs font-bold">K</div>
+        {isLoggedIn ? (
+          <div className="flex items-center gap-2">
+            <div className="grid h-8 w-8 place-items-center rounded bg-kino-red text-xs font-bold">
+              {userInitial}
+            </div>
+            <button onClick={handleSignOut} className="grid h-8 w-8 place-items-center rounded text-white/60 hover:text-white" aria-label="Sign out" title="Sign out">
+              <LogOut size={16} />
+            </button>
+          </div>
+        ) : (
+          <div className="grid h-8 w-8 place-items-center rounded bg-white/10 text-xs font-bold text-white/40">?</div>
+        )}
       </div>
     </header>
   )
