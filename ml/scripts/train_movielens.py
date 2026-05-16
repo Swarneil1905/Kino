@@ -48,14 +48,14 @@ ARTIFACTS = ROOT / "ml" / "artifacts"
 API_ARTIFACTS = ROOT / "apps" / "api" / "app" / "artifacts"
 
 # Training config
-TOP_USERS = 10_000
-TOP_MOVIES = 5_000
+TOP_USERS = 3_000
+TOP_MOVIES = 1_000
 EMBED_DIM = 128
 EPOCHS = 10
 BATCH_SIZE = 1024   # larger batch for GPU
 LR = 1e-3
 WEIGHT_DECAY = 1e-4
-EVAL_USERS = 500
+EVAL_USERS = 200
 
 DEVICE = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
@@ -85,17 +85,23 @@ def load_and_filter(data_dir: Path) -> tuple[pd.DataFrame, pd.DataFrame]:
     )
     print(f"  Pass 1 done in {time.time()-t0:.1f}s — top {len(top_movie_set):,} movies identified")
 
-    # ── Pass 2: load only rows for top movies, then filter top users ──────────
+    # ── Pass 2: stream-write filtered rows to temp CSV (zero large allocs) ────
     print("Loading MovieLens 25M — pass 2/2 (filter rows)...")
     t1 = time.time()
-    kept: list[pd.DataFrame] = []
+    tmp_path = data_dir / "_filtered_tmp.csv"
+    first_write = True
+    row_count = 0
     for chunk in pd.read_csv(ratings_path, dtype=CSV_DTYPES, chunksize=CHUNK):
-        filtered = chunk[chunk["movieId"].isin(top_movie_set)]
-        if len(filtered):
-            kept.append(filtered)
-    ratings = pd.concat(kept, ignore_index=True)
-    del kept
-    print(f"  Pass 2 done in {time.time()-t1:.1f}s — {len(ratings):,} rows kept")
+        mask = chunk["movieId"].isin(top_movie_set)
+        if mask.any():
+            chunk[mask].to_csv(tmp_path, mode="a", header=first_write, index=False)
+            row_count += mask.sum()
+            first_write = False
+    print(f"  Pass 2 done in {time.time()-t1:.1f}s — {row_count:,} rows written to temp CSV")
+
+    # Read back the small filtered file
+    ratings = pd.read_csv(tmp_path, dtype=CSV_DTYPES)
+    tmp_path.unlink()  # clean up temp file
 
     # Keep top N most-active users
     top_users = ratings["userId"].value_counts().head(TOP_USERS).index
