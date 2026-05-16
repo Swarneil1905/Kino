@@ -21,6 +21,7 @@ export default function LoginPage() {
       const data = await api.auth.login(email, password)
       localStorage.setItem("kino_token", data.access_token)
       localStorage.setItem("kino_user_id", data.user_id)
+      localStorage.setItem("kino_email", email)
       router.push("/")
     } catch (err) {
       setError(err instanceof ApiError ? err.message : "Login failed")
