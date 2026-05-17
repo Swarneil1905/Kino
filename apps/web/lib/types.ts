@@ -12,10 +12,15 @@ export type Movie = {
   voteAverage: number
 }
 
+export type ContentRowVariant = "standard" | "top10" | "continue-watching"
+
 export type ContentRowData = {
   id: string
   title: string
   movies: Movie[]
+  variant?: ContentRowVariant
+  // For "continue-watching" rows: progress per movie id in 0–100
+  progress?: Record<number, number>
 }
 
 export type UserRating = 1 | -1

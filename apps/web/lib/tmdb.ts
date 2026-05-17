@@ -47,9 +47,11 @@ export async function fetchHomeData(): Promise<{ featured: Movie; fallbackRows: 
     return {
       featured: items[0],
       fallbackRows: [
-        { id: "top-picks", title: "Top Picks for You", movies: items.slice(0, 18) },
-        { id: "genre", title: "Based on Your Ratings", movies: items.slice(18, 36) },
-        { id: "discover", title: "Discover Something New", movies: items.slice(36) },
+        { id: "trending", title: "Trending Now", movies: items.slice(0, 18), variant: "standard" },
+        { id: "top10", title: "Top 10 Movies in Your Region Today", movies: items.slice(0, 10), variant: "top10" },
+        { id: "picks", title: "Top Picks for You", movies: items.slice(18, 36), variant: "standard" },
+        { id: "continue", title: "Continue Watching", movies: items.slice(24, 36), variant: "continue-watching" },
+        { id: "discover", title: "Discover Something New", movies: items.slice(36), variant: "standard" },
       ],
     }
   } catch {
