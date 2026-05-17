@@ -27,7 +27,7 @@ export function HomeClient({ featured, fallbackRows, initialRatings = {} }: Home
 
   const likedRow: ContentRowData | null =
     likedMovies.length > 0
-      ? { id: "liked", title: "👍 Movies You Liked", movies: likedMovies }
+      ? { id: "liked", title: "Movies You Liked", movies: likedMovies }
       : null
 
   return (
