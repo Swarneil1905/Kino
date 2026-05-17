@@ -31,6 +31,16 @@ export function Navbar() {
     router.push("/login")
   }
 
+  const navLinks: { label: string; href: string }[] = [
+    { label: "Home", href: "/" },
+    { label: "TV Shows", href: "/" },
+    { label: "Movies", href: "/" },
+    { label: "New & Popular", href: "/" },
+    { label: "My List", href: "/" },
+    { label: "Browse by Languages", href: "/" },
+    { label: "Metrics", href: "/metrics" },
+  ]
+
   return (
     <header
       className={cn(
@@ -43,9 +53,15 @@ export function Navbar() {
           Kino
         </Link>
         <nav className="hidden items-center gap-5 text-sm text-white/70 md:flex">
-          <Link href="/" className="transition-colors hover:text-white">Home</Link>
-          <Link href="/" className="transition-colors hover:text-white">Movies</Link>
-          <Link href="/metrics" className="transition-colors hover:text-white">Metrics</Link>
+          {navLinks.map((link) => (
+            <Link
+              key={link.label}
+              href={link.href}
+              className="transition-colors hover:text-white"
+            >
+              {link.label}
+            </Link>
+          ))}
           {!isLoggedIn && (
             <Link href="/login" className="transition-colors hover:text-white">Sign In</Link>
           )}
