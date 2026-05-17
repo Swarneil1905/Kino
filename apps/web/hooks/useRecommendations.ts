@@ -81,6 +81,13 @@ export function useRecommendations(fallback: ContentRowData[], refreshKey: numbe
   const [rows, setRows] = useState<ContentRowData[]>(fallback)
   const [status, setStatus] = useState<Status>("idle")
 
+  // Reset to fallback when session is cleared (e.g. 401 on refresh)
+  useEffect(() => {
+    const handler = () => { setRows(fallback); setStatus("idle") }
+    window.addEventListener("kino:signout", handler)
+    return () => window.removeEventListener("kino:signout", handler)
+  }, [fallback])
+
   useEffect(() => {
     const token = localStorage.getItem("kino_token")
     if (!token) return

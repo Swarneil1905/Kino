@@ -17,10 +17,15 @@ export function Navbar() {
   const [userInitial, setUserInitial] = useState("K")
 
   useEffect(() => {
-    const token = localStorage.getItem("kino_token")
-    const email = localStorage.getItem("kino_email")
-    setIsLoggedIn(!!token)
-    if (email) setUserInitial(email[0].toUpperCase())
+    const sync = () => {
+      const token = localStorage.getItem("kino_token")
+      const email = localStorage.getItem("kino_email")
+      setIsLoggedIn(!!token)
+      if (email) setUserInitial(email[0].toUpperCase())
+    }
+    sync()
+    window.addEventListener("kino:signout", sync)
+    return () => window.removeEventListener("kino:signout", sync)
   }, [])
 
   const handleSignOut = () => {

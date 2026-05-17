@@ -53,13 +53,13 @@ async function request<T>(path: string, options: RequestInit = {}, auth = true):
   }
   const res = await fetch(`${BASE_URL}${path}`, { ...options, headers })
   if (!res.ok) {
-    // Stale or invalid token — clear session and redirect to login
+    // Stale or invalid token — clear session silently, let UI re-render
     if (res.status === 401 && auth && typeof window !== "undefined") {
       localStorage.removeItem("kino_token")
       localStorage.removeItem("kino_user_id")
       localStorage.removeItem("kino_email")
-      window.location.href = "/login"
-      return new Promise(() => {}) as Promise<T> // never resolves; redirect in flight
+      // Dispatch event so Navbar and hooks can react without a hard redirect
+      window.dispatchEvent(new Event("kino:signout"))
     }
     const body = await res.json().catch(() => ({}))
     const detail = typeof body.detail === "string" ? body.detail : "Request failed"

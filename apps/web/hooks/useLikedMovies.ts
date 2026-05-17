@@ -30,5 +30,11 @@ export function useLikedMovies(refreshKey: number = 0) {
 
   useEffect(() => { fetch() }, [fetch, refreshKey])
 
+  useEffect(() => {
+    const handler = () => setLikedMovies([])
+    window.addEventListener("kino:signout", handler)
+    return () => window.removeEventListener("kino:signout", handler)
+  }, [])
+
   return { likedMovies, refetch: fetch }
 }
