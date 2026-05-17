@@ -57,10 +57,10 @@ export function HeroBanner({ movie }: HeroBannerProps) {
         </div>
         <p className="mb-6 line-clamp-3 text-lg leading-snug text-white/75">{movie.overview}</p>
         <div className="flex gap-3">
-          <button className="flex items-center gap-2 rounded bg-white px-6 py-2.5 font-bold text-black">
+          <button className="flex items-center gap-2 rounded bg-white px-6 py-2.5 font-bold text-black transition-colors hover:bg-white/85">
             <Play size={20} fill="currentColor" /> Play
           </button>
-          <button className="flex items-center gap-2 rounded bg-[#6d6d6e]/70 px-6 py-2.5 font-bold text-white">
+          <button className="flex items-center gap-2 rounded bg-[#6d6d6e]/70 px-6 py-2.5 font-bold text-white transition-colors hover:bg-[#6d6d6e]/40">
             <Info size={20} /> More Info
           </button>
         </div>

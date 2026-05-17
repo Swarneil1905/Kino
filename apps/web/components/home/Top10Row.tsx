@@ -5,10 +5,10 @@ import { ChevronLeft, ChevronRight } from "lucide-react"
 import { useState } from "react"
 
 import { useItemsPerPage } from "@/hooks/useItemsPerPage"
-import type { ContentRowData, Movie, RatingStore, UserRating } from "@/lib/types"
+import type { ContentRowData } from "@/lib/types"
 import { cn } from "@/lib/utils"
 
-import { MovieCard } from "./MovieCard"
+import { Top10Card } from "./Top10Card"
 
 function pageVariants(direction: 1 | -1) {
   return {
@@ -26,21 +26,22 @@ function pageVariants(direction: 1 | -1) {
   }
 }
 
-type ContentRowProps = {
+type Top10RowProps = {
   row: ContentRowData
-  ratings?: RatingStore
-  pending?: Set<number>
-  onRate?: (movieId: number, rating: UserRating | null) => void
-  onMoreInfo?: (movie: Movie) => void
 }
 
-export function ContentRow({ row, ratings = {}, pending, onRate, onMoreInfo }: ContentRowProps) {
+export function Top10Row({ row }: Top10RowProps) {
   const [page, setPage] = useState(0)
   const [direction, setDirection] = useState<1 | -1>(1)
   const [hovering, setHovering] = useState(false)
-  const itemsPerPage = useItemsPerPage()
-  const totalPages = Math.max(1, Math.ceil(row.movies.length / itemsPerPage))
-  const visibleMovies = row.movies.slice(page * itemsPerPage, (page + 1) * itemsPerPage)
+
+  // Top 10 rows fit fewer items per page than standard rows because each card
+  // has the rank numeral next to it. Tie to global breakpoints, then clamp.
+  const perPage = Math.min(useItemsPerPage() - 1, 5)
+  const itemsPerPage = Math.max(2, perPage)
+  const top10 = row.movies.slice(0, 10)
+  const totalPages = Math.max(1, Math.ceil(top10.length / itemsPerPage))
+  const visible = top10.slice(page * itemsPerPage, (page + 1) * itemsPerPage)
 
   const go = (nextDirection: 1 | -1) => {
     setDirection(nextDirection)
@@ -53,11 +54,8 @@ export function ContentRow({ row, ratings = {}, pending, onRate, onMoreInfo }: C
       onMouseEnter={() => setHovering(true)}
       onMouseLeave={() => setHovering(false)}
     >
-      {/* Row header */}
       <div className="mb-2 flex items-baseline gap-3 px-5 md:px-14">
         <h2 className="text-[18px] font-bold tracking-tight text-white">{row.title}</h2>
-
-        {/* Explore All — fades in on row hover */}
         <span
           className="flex items-center text-[13px] font-semibold text-kino-cyan transition-opacity duration-300"
           style={{ opacity: hovering && totalPages > 1 ? 1 : 0 }}
@@ -65,8 +63,6 @@ export function ContentRow({ row, ratings = {}, pending, onRate, onMoreInfo }: C
           Explore All
           <ChevronRight className="ml-1 inline-block" size={10} />
         </span>
-
-        {/* Page indicator dots */}
         <div
           className="ml-auto flex gap-1 transition-opacity duration-300"
           style={{ opacity: hovering && totalPages > 1 ? 1 : 0 }}
@@ -83,7 +79,6 @@ export function ContentRow({ row, ratings = {}, pending, onRate, onMoreInfo }: C
         </div>
       </div>
 
-      {/* Slider */}
       <div className="relative overflow-visible px-5 md:px-14">
         <AnimatePresence mode="wait" custom={direction}>
           <motion.div
@@ -93,30 +88,19 @@ export function ContentRow({ row, ratings = {}, pending, onRate, onMoreInfo }: C
             initial="enter"
             animate="center"
             exit="exit"
-            className="grid gap-2"
+            className="grid gap-3"
             style={{ gridTemplateColumns: `repeat(${itemsPerPage}, 1fr)` }}
           >
-            {visibleMovies.map((movie, index) => (
-              <MovieCard
+            {visible.map((movie, index) => (
+              <Top10Card
                 key={`${row.id}-${movie.id}`}
+                rank={page * itemsPerPage + index + 1}
                 movie={movie}
-                expandDirection={
-                  index === 0
-                    ? "right"
-                    : index === visibleMovies.length - 1
-                    ? "left"
-                    : "center"
-                }
-                userRating={ratings[movie.id] ?? null}
-                pending={pending?.has(movie.id)}
-                onRate={onRate}
-                onMoreInfo={onMoreInfo}
               />
             ))}
           </motion.div>
         </AnimatePresence>
 
-        {/* Nav arrows */}
         {totalPages > 1 && (
           <>
             <button

@@ -62,7 +62,7 @@ export function MovieCard({
 
   return (
     <div
-      className="relative flex-1 min-w-0"
+      className="relative w-full min-w-0"
       onMouseEnter={() => {
         clearTimer()
         timerRef.current = setTimeout(() => setExpanded(true), 420)
@@ -87,19 +87,13 @@ export function MovieCard({
         )}
       </div>
 
-      {/* Title label below card */}
-      {!expanded && (
-        <p className="mt-1.5 truncate text-center text-[11px] font-medium text-white/55">
-          {movie.title}
-        </p>
-      )}
 
       {/* Expanded hover panel */}
       <AnimatePresence>
         {expanded && (
           <motion.div
             className={cn(
-              "absolute top-0 z-20 w-[300px] overflow-hidden rounded-md border border-white/8 bg-[#181818] shadow-[0_20px_50px_rgba(0,0,0,0.8)]",
+              "absolute top-0 z-20 w-[300px] overflow-hidden rounded-md border border-white/8 bg-kino-surface shadow-[0_20px_50px_rgba(0,0,0,0.8)]",
               expandDirection === "left" && "right-0 origin-top-right",
               expandDirection === "right" && "left-0 origin-top-left",
               expandDirection === "center" && "left-1/2 -translate-x-1/2 origin-top",
@@ -114,7 +108,7 @@ export function MovieCard({
               className="relative aspect-video w-full bg-zinc-800 bg-cover bg-center"
               style={{ backgroundImage: backdrop ? `url(${backdrop})` : undefined }}
             >
-              <div className="absolute inset-0 bg-gradient-to-t from-[#181818] via-transparent to-transparent" />
+              <div className="absolute inset-0 bg-gradient-to-t from-kino-surface via-transparent to-transparent" />
               <div className="absolute bottom-2.5 left-3 right-3 text-sm font-bold leading-tight">
                 {movie.title}
               </div>
@@ -169,7 +163,7 @@ export function MovieCard({
 
               {/* Metadata row */}
               <div className="flex flex-wrap items-center gap-x-2 gap-y-1 text-xs font-semibold">
-                <span className="text-[#46d369]">{movie.matchPercent}% Match</span>
+                <span className="text-kino-green">{movie.matchPercent}% Match</span>
                 <span className="text-white/70">{movie.releaseYear}</span>
                 <span className="border border-white/40 px-1 text-[10px] font-normal text-white/60">
                   {movie.maturityRating}
