@@ -53,6 +53,14 @@ async function request<T>(path: string, options: RequestInit = {}, auth = true):
   }
   const res = await fetch(`${BASE_URL}${path}`, { ...options, headers })
   if (!res.ok) {
+    // Stale or invalid token — clear session and redirect to login
+    if (res.status === 401 && auth && typeof window !== "undefined") {
+      localStorage.removeItem("kino_token")
+      localStorage.removeItem("kino_user_id")
+      localStorage.removeItem("kino_email")
+      window.location.href = "/login"
+      return new Promise(() => {}) as Promise<T> // never resolves; redirect in flight
+    }
     const body = await res.json().catch(() => ({}))
     const detail = typeof body.detail === "string" ? body.detail : "Request failed"
     throw new ApiError(res.status, detail)

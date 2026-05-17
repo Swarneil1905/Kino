@@ -62,7 +62,7 @@ export function MovieCard({
 
   return (
     <div
-      className="relative shrink-0 w-[160px] md:w-[196px] lg:w-[224px]"
+      className="relative flex-1 min-w-0"
       onMouseEnter={() => {
         clearTimer()
         timerRef.current = setTimeout(() => setExpanded(true), 420)
