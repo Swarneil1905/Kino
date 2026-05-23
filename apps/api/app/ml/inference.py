@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import json
+import logging
 from datetime import datetime, timezone
 from pathlib import Path
 from uuid import UUID
@@ -11,6 +12,8 @@ from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.cache.redis_client import delete_cache, get_cache, set_cache
+
+logger = logging.getLogger(__name__)
 from app.ml.faiss_store import FaissStore
 from app.ml.features import GENRE_TO_IDX, genre_vector, load_genre_encoder, load_model_meta, user_genre_affinity
 from app.ml.item_tower import ItemTower
@@ -101,6 +104,7 @@ class RecommendationEngine:
             cached = await get_cache(cache_key)
             if cached:
                 ids = json.loads(cached)
+                logger.info("[REC] Cache HIT for %s — cached ids count: %d, returning: %d", cache_key, len(ids), min(len(ids), limit))
                 movies = await self._fetch_movies(db, ids[:limit])
                 return movies, True, now
 
@@ -125,13 +129,17 @@ class RecommendationEngine:
             return movies, False, now
 
         rated_ids = await self._rated_movie_ids(db, user_id)
-        candidates = [mid for mid in self.faiss.search(embedding, k=200) if mid not in rated_ids]
+        faiss_results = self.faiss.search(embedding, k=200)
+        candidates = [mid for mid in faiss_results if mid not in rated_ids]
+        logger.info("[REC] user=%s | FAISS returned: %d | after rated filter: %d candidates", user_id, len(faiss_results), len(candidates))
         ranked_ids = candidates[:limit]
 
         if self.ranker and self.item_tower and candidates:
             ranked_ids = await self._rerank(db, embedding, candidates, limit)
 
+        logger.info("[REC] user=%s | final ranked_ids count: %d", user_id, len(ranked_ids))
         movies = await self._fetch_movies(db, ranked_ids)
+        logger.info("[REC] user=%s | movies fetched from DB: %d", user_id, len(movies))
         if cache_key:
             await set_cache(cache_key, json.dumps(ranked_ids), ttl=900)
         return movies, False, now
@@ -193,6 +201,7 @@ class RecommendationEngine:
                 score = self.ranker(user_t, item_emb, torch.tensor([gscore]), torch.tensor([pop]), torch.tensor([decade]))
             scores.append((mid, float(score.item())))
 
+        logger.info("[RERANK] candidates in: %d | scored: %d | returning top: %d", len(candidates), len(scores), limit)
         scores.sort(key=lambda x: x[1], reverse=True)
         return [mid for mid, _ in scores[:limit]]
 
