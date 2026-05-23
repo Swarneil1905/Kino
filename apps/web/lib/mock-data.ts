@@ -86,9 +86,7 @@ const extendedMock: Movie[] = [...mockMovies, ...mockMovies, ...mockMovies, ...m
 )
 
 export const mockRows: ContentRowData[] = [
-  { id: "trending", title: "Trending Now", movies: mockMovies, variant: "standard" },
-  { id: "top10", title: "Top 10 Movies in Your Region Today", movies: extendedMock.slice(0, 10), variant: "top10" },
+  { id: "popular", title: "Popular on Kino", movies: mockMovies, variant: "standard" },
   { id: "picks", title: "Top Picks for You", movies: [...mockMovies].reverse(), variant: "standard" },
-  { id: "continue", title: "Continue Watching", movies: mockMovies.slice(0, 4), variant: "continue-watching" },
   { id: "discover", title: "Discover Something New", movies: extendedMock, variant: "standard" },
 ]
