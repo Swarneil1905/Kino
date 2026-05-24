@@ -30,9 +30,14 @@ export function HomeClient({ featured, fallbackRows, initialRatings = {} }: Home
       ? { id: "liked", title: "Movies You Liked", movies: likedMovies, variant: "standard" }
       : null
 
+  // Once real recommendations load, use the first movie as the hero so we
+  // always show a real backdrop image rather than the SSR fallback.
+  const featuredMovie =
+    status === "success" && rows[0]?.movies[0] ? rows[0].movies[0] : featured
+
   return (
     <main className="min-h-screen bg-netflix-black">
-      <HeroBanner movie={featured} />
+      <HeroBanner movie={featuredMovie} />
       <div className="relative z-10 -mt-24 space-y-2 pb-20">
         {status === "loading"
           ? Array.from({ length: 3 }).map((_, i) => <SkeletonRow key={i} />)

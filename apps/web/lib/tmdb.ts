@@ -1,7 +1,12 @@
 import type { ContentRowData, Movie } from "@/lib/types"
 import { mockMovies, mockRows } from "@/lib/mock-data"
 
-const API_URL = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:8000"
+// Server-side (SSR/page.tsx): needs Docker service name "api", not localhost
+// Client-side: uses NEXT_PUBLIC_API_URL which is always localhost:8000
+const isServer = typeof window === "undefined"
+const API_URL = isServer
+  ? (process.env.API_URL ?? "http://api:8000")
+  : (process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:8000")
 
 type ApiMovie = {
   id: number

@@ -119,8 +119,8 @@ export const api = {
       request<{ movies: ApiMovie[] }>(`/recommendations/similar/${movieId}?limit=${limit}`).then((d) => ({
         movies: d.movies.map(mapMovie),
       })),
-    refresh: () =>
-      request<{ status?: string; computed_at: string; movies?: ApiMovie[] }>("/recommendations/refresh", {
+    refresh: (limit = 100) =>
+      request<{ status?: string; computed_at: string; movies?: ApiMovie[] }>(`/recommendations/refresh?limit=${limit}`, {
         method: "POST",
       }),
   },
