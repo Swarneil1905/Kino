@@ -40,4 +40,7 @@ async def test_movies_list(client: AsyncClient):
 async def test_metrics(client: AsyncClient):
     response = await client.get("/metrics")
     assert response.status_code == 200
-    assert "recall_at_10" in response.json()
+    data = response.json()
+    assert "comparison" in data
+    assert "model" in data
+    assert "n_users" in data
