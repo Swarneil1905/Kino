@@ -8,6 +8,7 @@ import { SkeletonRow } from "@/components/ui/SkeletonRow"
 import { useLikedMovies } from "@/hooks/useLikedMovies"
 import { useRatings } from "@/hooks/useRatings"
 import { useRecommendations } from "@/hooks/useRecommendations"
+import { useSimilarMovies } from "@/hooks/useSimilarMovies"
 import type { ContentRowData, Movie, RatingStore, UserRating } from "@/lib/types"
 
 type HomeClientProps = {
@@ -24,6 +25,7 @@ export function HomeClient({ featured, fallbackRows, initialRatings = {} }: Home
   const { rows, status } = useRecommendations(fallbackRows, refreshKey)
   const { likedMovies } = useLikedMovies(refreshKey)
   const { ratings, rate, pending } = useRatings(initialRatings, handleRatingCommit)
+  const { similarRows } = useSimilarMovies(likedMovies)
 
   const likedRow: ContentRowData | null =
     likedMovies.length > 0
@@ -50,6 +52,15 @@ export function HomeClient({ featured, fallbackRows, initialRatings = {} }: Home
                 onRate={rate}
               />
             ))}
+        {similarRows.map((row) => (
+          <ContentRow
+            key={row.id}
+            row={row}
+            ratings={ratings}
+            pending={pending}
+            onRate={rate}
+          />
+        ))}
         {likedRow && (
           <ContentRow
             row={likedRow}
