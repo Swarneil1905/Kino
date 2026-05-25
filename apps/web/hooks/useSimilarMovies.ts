@@ -16,6 +16,8 @@ export function useSimilarMovies(likedMovies: Movie[]) {
   const [similarRows, setSimilarRows] = useState<ContentRowData[]>([])
 
   useEffect(() => {
+    console.log("[SimilarMovies] effect fired, likedMovies count:", likedMovies.length)
+
     if (!likedMovies.length) {
       setSimilarRows([])
       return
@@ -29,10 +31,13 @@ export function useSimilarMovies(likedMovies: Movie[]) {
 
     const fetchAll = async () => {
       const rows: ContentRowData[] = []
+      console.log("[SimilarMovies] seeds:", seeds.map((m) => ({ id: m.id, title: m.title })))
 
       for (const movie of seeds) {
         try {
+          console.log("[SimilarMovies] fetching similar for:", movie.id, movie.title)
           const { movies } = await api.recommendations.similar(movie.id, 15)
+          console.log("[SimilarMovies] got", movies.length, "similar movies for", movie.title)
           // Only add the row if we got a meaningful number of similar titles
           if (!cancelled && movies.length >= 3) {
             rows.push({
@@ -42,11 +47,12 @@ export function useSimilarMovies(likedMovies: Movie[]) {
               variant: "standard",
             })
           }
-        } catch {
-          // Silently skip — the row is optional
+        } catch (err) {
+          console.error("[SimilarMovies] error for movie", movie.id, err)
         }
       }
 
+      console.log("[SimilarMovies] final rows:", rows.length)
       if (!cancelled) setSimilarRows(rows)
     }
 
