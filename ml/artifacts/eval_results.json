@@ -2,19 +2,19 @@
   "baseline": {
     "variant": "Baseline",
     "mmr_lambda": null,
-    "n_users_evaluated": 200,
-    "hit_rate_at_10": 0.755,
-    "ndcg_at_10": 0.216,
-    "precision_at_10": 0.205,
-    "intra_list_distance": 0.175
+    "n_users_evaluated": 491,
+    "hit_rate_at_10": 0.1405,
+    "ndcg_at_10": 0.0252,
+    "precision_at_10": 0.0202,
+    "intra_list_distance": 0.0668
   },
   "mmr": {
     "variant": "MMR (\u03bb=0.7)",
     "mmr_lambda": 0.7,
-    "n_users_evaluated": 200,
-    "hit_rate_at_10": 0.745,
-    "ndcg_at_10": 0.21,
-    "precision_at_10": 0.1965,
-    "intra_list_distance": 0.2458
+    "n_users_evaluated": 491,
+    "hit_rate_at_10": 0.1548,
+    "ndcg_at_10": 0.0264,
+    "precision_at_10": 0.0216,
+    "intra_list_distance": 0.1236
   }
 }
