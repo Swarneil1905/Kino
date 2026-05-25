@@ -39,6 +39,7 @@ jobs:
       DATABASE_URL: postgresql+asyncpg://postgres:postgres@localhost:5432/kino
       REDIS_URL: redis://localhost:6379/0
       SECRET_KEY: ci-test-secret-key-for-jwt-signing-only
+      TEST_MODE: "1"
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-python@v5

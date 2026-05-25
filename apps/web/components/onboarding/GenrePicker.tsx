@@ -73,7 +73,7 @@ export function GenrePicker({ onComplete }: GenrePickerProps) {
         </div>
         <h2 className="text-2xl font-bold text-white mb-1">What do you like to watch?</h2>
         <p className="text-zinc-400 text-sm mb-6">
-          Pick at least {MIN_PICKS} genres — we'll personalise your feed right away.
+          Pick at least {MIN_PICKS} genres &mdash; we&apos;ll personalise your feed right away.
         </p>
 
         {/* Genre grid */}
