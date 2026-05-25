@@ -19,8 +19,13 @@ from __future__ import annotations
 
 import argparse
 import json
+import os
 import sys
 from pathlib import Path
+
+# Must be set before any OpenMP/FAISS import to avoid the dual-runtime conflict
+# on Windows (libomp140 vs libiomp5md).
+os.environ.setdefault("KMP_DUPLICATE_LIB_OK", "TRUE")
 
 import faiss
 import numpy as np
@@ -322,9 +327,14 @@ def main() -> None:
             note  = "  ← diversity" if key == "intra_list_distance" else ""
             print(f"  {key:<26} {b:>10.4f} {m:>10.4f} {delta:>10}{note}")
 
-        out_path = ARTIFACTS / "eval_results.json"
-        out_path.write_text(json.dumps({"baseline": baseline, "mmr": mmr_res}, indent=2))
-        print(f"\n  Results saved → {out_path}")
+        payload = json.dumps({"baseline": baseline, "mmr": mmr_res}, indent=2)
+        for out_path in [
+            ARTIFACTS / "eval_results.json",
+            ROOT / "apps" / "api" / "app" / "artifacts" / "eval_results.json",
+        ]:
+            out_path.parent.mkdir(parents=True, exist_ok=True)
+            out_path.write_text(payload)
+            print(f"\n  Results saved → {out_path}")
 
     elif args.mmr:
         run_eval(use_mmr=True, lam=args.lam, n_users=args.n)

@@ -34,7 +34,6 @@ from ml.src.data.features import (
     GENRES,
     GENRE_TO_IDX,
     build_item_features,
-    build_user_genre_affinity,
     parse_genres,
 )
 from ml.src.data.splitter import label_implicit, split_by_timestamp
@@ -48,8 +47,9 @@ ARTIFACTS = ROOT / "ml" / "artifacts"
 API_ARTIFACTS = ROOT / "apps" / "api" / "app" / "artifacts"
 
 # Training config
-TOP_USERS = 3_000
-TOP_MOVIES = 1_000
+TOP_MOVIES = 3_000   # top N most-rated movies
+MAX_USERS = 15_000   # cap total users (random sample if more)
+MIN_RATINGS = 20     # minimum ratings per user
 EMBED_DIM = 128
 EPOCHS = 10
 BATCH_SIZE = 1024   # larger batch for GPU
@@ -103,9 +103,13 @@ def load_and_filter(data_dir: Path) -> tuple[pd.DataFrame, pd.DataFrame]:
     ratings = pd.read_csv(tmp_path, dtype=CSV_DTYPES)
     tmp_path.unlink()  # clean up temp file
 
-    # Keep top N most-active users
-    top_users = ratings["userId"].value_counts().head(TOP_USERS).index
-    ratings = ratings[ratings["userId"].isin(top_users)].copy()
+    # Apply MIN_RATINGS filter, then cap to MAX_USERS (random sample)
+    user_counts = ratings.groupby("userId").size()
+    eligible = user_counts[user_counts >= MIN_RATINGS].index
+    if len(eligible) > MAX_USERS:
+        rng = np.random.default_rng(42)
+        eligible = rng.choice(eligible, size=MAX_USERS, replace=False)
+    ratings = ratings[ratings["userId"].isin(eligible)].copy()
 
     movies = pd.read_csv(data_dir / "movies.csv")
     movies = movies[movies["movieId"].isin(ratings["movieId"].unique())]
@@ -116,9 +120,40 @@ def load_and_filter(data_dir: Path) -> tuple[pd.DataFrame, pd.DataFrame]:
     return ratings, movies
 
 
+# ── Vectorized affinity builder ───────────────────────────────────────────────
+
+def fast_user_genre_affinity(ratings_df: pd.DataFrame, movie_genres: dict) -> dict:
+    """Vectorized replacement for build_user_genre_affinity — no iterrows()."""
+    n_genres = len(GENRES)
+    df = ratings_df[ratings_df["movieId"].isin(movie_genres)].copy()
+    df["weight"] = 0.0
+    df.loc[df["rating"] >= 4.0, "weight"] = 1.0
+    df.loc[df["rating"] < 2.5,  "weight"] = -0.5
+
+    # Build (N, n_genres) genre vector array and weight each row by rating weight
+    genre_vecs = np.array(
+        [movie_genres.get(int(mid), np.zeros(n_genres)) for mid in df["movieId"]],
+        dtype=np.float32,
+    )
+    weights = df["weight"].values[:, None].astype(np.float32)
+    weighted = genre_vecs * weights  # (N, n_genres)
+
+    # groupby userId, sum weighted genre vecs, then L1-normalise
+    expanded = pd.DataFrame(weighted, index=df.index, columns=list(range(n_genres)))
+    expanded["userId"] = df["userId"].values
+
+    agg = expanded.groupby("userId").sum()
+    norms = agg.abs().sum(axis=1).clip(lower=1.0)
+    agg = agg.div(norms, axis=0)
+
+    return {int(uid): row.values.astype(np.float32) for uid, row in agg.iterrows()}
+
+
 # ── Dataset ───────────────────────────────────────────────────────────────────
 
 class PairDataset(Dataset):
+    """Pre-computes all arrays at init so __getitem__ is pure numpy — no pandas overhead."""
+
     def __init__(
         self,
         pairs: pd.DataFrame,
@@ -127,33 +162,47 @@ class PairDataset(Dataset):
         item_feats_indexed: pd.DataFrame,
         affinities: dict,
     ) -> None:
-        self.pairs = pairs.reset_index(drop=True)
-        self.user_map = user_map
-        self.item_map = item_map
-        self.feats = item_feats_indexed
-        self.affinities = affinities
-        self.n_genres = len(GENRES)
+        n_genres = len(GENRES)
+        pairs = pairs.reset_index(drop=True)
+
+        self.user_ids = np.array([user_map[int(u)] for u in pairs["userId"]], dtype=np.int64)
+        self.item_ids = np.array([item_map[int(m)] for m in pairs["movieId"]], dtype=np.int64)
+
+        # Pre-build genre + numeric matrices indexed by item embedding index
+        n_items = max(item_map.values()) + 1
+        genre_matrix   = np.zeros((n_items, n_genres), dtype=np.float32)
+        numeric_matrix = np.zeros((n_items, 2),        dtype=np.float32)
+        for mid, iid in item_map.items():
+            if mid in item_feats_indexed.index:
+                row = item_feats_indexed.loc[mid]
+                genre_matrix[iid]   = np.array(row["genre_vec"], dtype=np.float32)
+                numeric_matrix[iid] = np.array(
+                    [row["release_decade"], row["log_pop_scaled"]], dtype=np.float32
+                )
+
+        self.genre_vecs = genre_matrix[self.item_ids]
+        self.numerics   = numeric_matrix[self.item_ids]
+
+        # Pre-build affinity matrix indexed by user embedding index
+        n_users = max(user_map.values()) + 1
+        aff_matrix = np.zeros((n_users, n_genres), dtype=np.float32)
+        for uid, uidx in user_map.items():
+            if uid in affinities:
+                aff_matrix[uidx] = np.array(affinities[uid], dtype=np.float32)
+        self.affinities = aff_matrix[self.user_ids]
 
     def __len__(self) -> int:
-        return len(self.pairs)
+        return len(self.user_ids)
 
     def __getitem__(self, idx: int):
-        row = self.pairs.iloc[idx]
-        uid = self.user_map[int(row["userId"])]
-        iid = self.item_map[int(row["movieId"])]
-        mid = int(row["movieId"])
-
-        feats = self.feats.loc[mid]
-        genre_vec = torch.tensor(feats["genre_vec"], dtype=torch.float32)
-        numeric = torch.tensor(
-            [feats["release_decade"], feats["log_pop_scaled"]], dtype=torch.float32
+        return (
+            int(self.user_ids[idx]),
+            int(self.item_ids[idx]),
+            torch.zeros(64),
+            torch.from_numpy(self.affinities[idx]),
+            torch.from_numpy(self.genre_vecs[idx]),
+            torch.from_numpy(self.numerics[idx]),
         )
-        aff = torch.tensor(
-            self.affinities.get(int(row["userId"]), np.zeros(self.n_genres)),
-            dtype=torch.float32,
-        )
-        history = torch.zeros(64)
-        return uid, iid, history, aff, genre_vec, numeric
 
 
 # ── Training ──────────────────────────────────────────────────────────────────
@@ -350,8 +399,8 @@ def main() -> None:
     movie_genres = {
         int(r.movieId): parse_genres(str(r.genres)) for r in movies.itertuples()
     }
-    print("  Building user genre affinities (this takes a minute)...")
-    affinities = build_user_genre_affinity(train_df, movies, movie_genres)
+    print("  Building user genre affinities (vectorized)...")
+    affinities = fast_user_genre_affinity(train_df, movie_genres)
 
     scaler = StandardScaler()
     item_feats["log_pop_scaled"] = scaler.fit_transform(item_feats[["log_popularity"]])
