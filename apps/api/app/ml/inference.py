@@ -177,6 +177,63 @@ class RecommendationEngine:
             await set_cache(cache_key, json.dumps(ranked_ids), ttl=900)
         return movies, False, now
 
+    async def cold_start(
+        self,
+        db: AsyncSession,
+        genre_names: list[str],
+        limit: int = 20,
+    ) -> list[MovieOut]:
+        """Recommend movies for a brand-new user using only genre preferences.
+
+        Instead of a learned user embedding, we build a genre affinity vector
+        from the genres the user selected during onboarding, then run it through
+        the UserTower with a neutral user ID (0) and zero history.
+
+        This gives meaningful personalisation before the user has rated anything.
+        """
+        if not self.loaded or not self.user_tower:
+            return await self._popular_movies(db, limit)
+
+        # Build an 18-dim genre affinity vector: 1.0 for each chosen genre
+        aff = np.zeros(len(self.genre_encoder), dtype=np.float32)
+        for g in genre_names:
+            idx = self.genre_encoder.get(g)
+            if idx is not None:
+                aff[idx] = 1.0
+
+        if aff.sum() == 0:
+            # No recognisable genres — fall back to popular
+            return await self._popular_movies(db, limit)
+
+        with torch.no_grad():
+            emb = self.user_tower(
+                torch.tensor([0]),           # neutral user ID
+                torch.zeros(1, 64),          # no watch history
+                torch.tensor(aff).unsqueeze(0),
+            )
+        embedding = emb.numpy()[0].astype(np.float32)
+
+        faiss_results = self.faiss.search(embedding, k=min(limit * 3, 200))
+
+        # Apply MMR so the starter list is diverse across the chosen genres
+        if self.item_embeddings and len(faiss_results) > limit:
+            rel_scores = {mid: 1.0 / (i + 1) for i, mid in enumerate(faiss_results)}
+            candidates = mmr_rerank(
+                candidates=faiss_results,
+                item_embeddings=self.item_embeddings,
+                relevance_scores=rel_scores,
+                k=limit,
+                lam=0.7,
+            )
+        else:
+            candidates = faiss_results[:limit]
+
+        logger.info(
+            "[COLD-START] genres=%s | FAISS=%d | MMR→%d",
+            genre_names, len(faiss_results), len(candidates),
+        )
+        return await self._fetch_movies(db, candidates)
+
     async def similar(self, db: AsyncSession, movie_id: int, limit: int = 10) -> list[MovieOut]:
         if not self.loaded or not self.item_tower:
             source = await db.get(Movie, movie_id)
