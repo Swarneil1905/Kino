@@ -85,6 +85,12 @@ export const api = {
     me: () => request<{ id: string; email: string; rating_count: number }>("/auth/me"),
   },
   movies: {
+    trending: (limit = 30) =>
+      request<{ movies: ApiMovie[] }>(`/movies/trending?limit=${limit}`, {}, false)
+        .then((d) => ({ movies: d.movies.map(mapMovie) })),
+    topRated: (limit = 10) =>
+      request<{ movies: ApiMovie[] }>(`/movies/top-rated?limit=${limit}`, {}, false)
+        .then((d) => ({ movies: d.movies.map(mapMovie) })),
     list: (page = 1, limit = 20, genre?: string) => {
       const params = new URLSearchParams({ page: String(page), limit: String(limit) })
       if (genre) params.set("genre", genre)
