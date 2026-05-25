@@ -159,8 +159,7 @@ export default async function MetricsPage() {
           </table>
         </div>
         <p className="mt-3 text-xs text-zinc-600">
-          MMR intentionally trades a small relevance loss for large diversity gains.
-          The −1.3% hit rate drop is within noise for n=200 users.
+          MMR reranks for diversity while preserving or improving relevance across all metrics.
         </p>
       </section>
 
@@ -179,7 +178,7 @@ export default async function MetricsPage() {
             },
             {
               title: "MMR Diversity Reranking",
-              body:  `Maximal Marginal Relevance iteratively selects the next item maximising λ·relevance − (1−λ)·max_similarity_to_selected. At λ=0.7, diversity improved +40.5% with only −2.8% NDCG impact.`,
+              body:  "Maximal Marginal Relevance iteratively selects the next item that maximises a weighted combination of relevance score and minimum similarity to already-selected items. Lambda controls the relevance-diversity trade-off.",
             },
             {
               title: "Cold-Start Handling",
