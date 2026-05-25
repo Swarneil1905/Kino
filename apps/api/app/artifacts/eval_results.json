@@ -1,0 +1,16 @@
+{
+  "baseline": {
+    "hit_rate_at_10": 0.03471186863672499,
+    "ndcg_at_10": 0.02981902212815483,
+    "precision_at_10": 0.019135802469135803,
+    "intra_list_distance": 0.09049653664131653,
+    "n_users_evaluated": 486
+  },
+  "mmr": {
+    "hit_rate_at_10": 0.03471186863672499,
+    "ndcg_at_10": 0.02981902212815483,
+    "precision_at_10": 0.019135802469135803,
+    "intra_list_distance": 0.09049653664131653,
+    "n_users_evaluated": 486
+  }
+}
