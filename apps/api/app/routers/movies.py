@@ -37,6 +37,33 @@ async def list_movies(
     return MovieListOut(items=items, total=total, page=page)
 
 
+@router.get("/trending")
+async def trending_movies(
+    db: Annotated[AsyncSession, Depends(get_db)],
+    limit: int = Query(default=30, ge=1, le=50),
+) -> dict[str, list[MovieOut]]:
+    """Top movies ranked by popularity score."""
+    result = await db.execute(
+        select(Movie).order_by(Movie.popularity_score.desc().nullslast()).limit(limit)
+    )
+    return {"movies": [movie_to_schema(m) for m in result.scalars().all()]}
+
+
+@router.get("/top-rated")
+async def top_rated_movies(
+    db: Annotated[AsyncSession, Depends(get_db)],
+    limit: int = Query(default=10, ge=1, le=20),
+) -> dict[str, list[MovieOut]]:
+    """Top movies ranked by vote average (shown as Top 10 row)."""
+    result = await db.execute(
+        select(Movie)
+        .where(Movie.vote_average.isnot(None))
+        .order_by(Movie.vote_average.desc())
+        .limit(limit)
+    )
+    return {"movies": [movie_to_schema(m) for m in result.scalars().all()]}
+
+
 @router.get("/search")
 async def search_movies(
     db: Annotated[AsyncSession, Depends(get_db)],
