@@ -16,7 +16,8 @@ export type ContentRowData = {
   id: string
   title: string
   movies: Movie[]
-  variant?: "standard"
+  variant?: "standard" | "ranked"
+  progress?: Record<number, number>
 }
 
 export type UserRating = 1 | -1
