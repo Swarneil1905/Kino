@@ -14,6 +14,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from app.cache.redis_client import delete_cache, get_cache, set_cache
 
 logger = logging.getLogger(__name__)
+from app.ml.diversity import mmr_rerank
 from app.ml.faiss_store import FaissStore
 from app.ml.features import GENRE_TO_IDX, genre_vector, load_genre_encoder, load_model_meta, user_genre_affinity
 from app.ml.item_tower import ItemTower
@@ -36,11 +37,24 @@ class RecommendationEngine:
         self.ranker: Ranker | None = None
         self.genre_encoder: dict[str, int] = {}
         self.device = torch.device("cpu")
+        # Pre-extracted item embeddings for MMR diversity reranking
+        # {movie_id: L2-normalised embedding vector}
+        self.item_embeddings: dict[int, np.ndarray] = {}
 
     def load(self) -> None:
         self.genre_encoder = load_genre_encoder()
         self.meta = load_model_meta()
         faiss_ok = self.faiss.load()
+
+        # Pre-extract all item embeddings from the FAISS index so MMR can
+        # compute pairwise cosine similarity without hitting the index repeatedly.
+        if faiss_ok and self.faiss.index is not None:
+            raw = self.faiss.index.reconstruct_n(0, self.faiss.index.ntotal)
+            self.item_embeddings = {
+                self.faiss.movie_id_map[pos]: raw[pos]
+                for pos in range(self.faiss.index.ntotal)
+            }
+            logger.info("[ENGINE] Pre-extracted %d item embeddings for MMR", len(self.item_embeddings))
 
         if (ARTIFACTS_DIR / "user_tower.pt").exists() and self.meta:
             num_users = int(self.meta.get("num_users", 1))
@@ -132,10 +146,29 @@ class RecommendationEngine:
         faiss_results = self.faiss.search(embedding, k=200)
         candidates = [mid for mid in faiss_results if mid not in rated_ids]
         logger.info("[REC] user=%s | FAISS returned: %d | after rated filter: %d candidates", user_id, len(faiss_results), len(candidates))
-        ranked_ids = candidates[:limit]
 
+        # Step 1: Ranker scores candidates and returns a larger pool for MMR to work with.
+        # We ask for limit*3 (e.g. 30 for limit=10) so MMR has room to pick diverse items.
+        mmr_pool_size = min(len(candidates), limit * 3)
         if self.ranker and self.item_tower and candidates:
-            ranked_ids = await self._rerank(db, embedding, candidates, limit)
+            pre_ranked = await self._rerank(db, embedding, candidates, mmr_pool_size)
+        else:
+            pre_ranked = candidates[:mmr_pool_size]
+
+        # Step 2: MMR diversity reranking — picks the final `limit` items that
+        # balance relevance (position in pre_ranked) vs novelty (cosine distance).
+        if self.item_embeddings and len(pre_ranked) > limit:
+            rel_scores = {mid: 1.0 / (i + 1) for i, mid in enumerate(pre_ranked)}
+            ranked_ids = mmr_rerank(
+                candidates=pre_ranked,
+                item_embeddings=self.item_embeddings,
+                relevance_scores=rel_scores,
+                k=limit,
+                lam=0.7,
+            )
+            logger.info("[MMR] user=%s | pool: %d → diverse top: %d", user_id, len(pre_ranked), len(ranked_ids))
+        else:
+            ranked_ids = pre_ranked[:limit]
 
         logger.info("[REC] user=%s | final ranked_ids count: %d", user_id, len(ranked_ids))
         movies = await self._fetch_movies(db, ranked_ids)
