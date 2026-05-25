@@ -100,6 +100,7 @@ export function ContentRow({ row, ratings = {}, pending, onRate, onMoreInfo }: C
               <MovieCard
                 key={`${row.id}-${movie.id}`}
                 movie={movie}
+                rank={row.variant === "ranked" ? page * itemsPerPage + index + 1 : undefined}
                 expandDirection={
                   index === 0
                     ? "right"

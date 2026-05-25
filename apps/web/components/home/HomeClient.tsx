@@ -6,6 +6,7 @@ import { ContentRow } from "@/components/home/ContentRow"
 import { HeroBanner } from "@/components/home/HeroBanner"
 import { SkeletonRow } from "@/components/ui/SkeletonRow"
 import { GenrePicker } from "@/components/onboarding/GenrePicker"
+import { useCuratedRows } from "@/hooks/useCuratedRows"
 import { useLikedMovies } from "@/hooks/useLikedMovies"
 import { useOnboarding } from "@/hooks/useOnboarding"
 import { useRatings } from "@/hooks/useRatings"
@@ -38,6 +39,7 @@ export function HomeClient({ featured, fallbackRows, initialRatings = {} }: Home
   const { ratings, rate, pending } = useRatings(initialRatings, handleRatingCommit)
   const { similarRows } = useSimilarMovies(likedMovies)
   const { showPicker, coldRows, completePicker } = useOnboarding(ratingCount)
+  const { curatedRows } = useCuratedRows()
 
   const likedRow: ContentRowData | null =
     likedMovies.length > 0
@@ -69,6 +71,15 @@ export function HomeClient({ featured, fallbackRows, initialRatings = {} }: Home
               />
             ))}
         {similarRows.map((row) => (
+          <ContentRow
+            key={row.id}
+            row={row}
+            ratings={ratings}
+            pending={pending}
+            onRate={rate}
+          />
+        ))}
+        {curatedRows.map((row) => (
           <ContentRow
             key={row.id}
             row={row}

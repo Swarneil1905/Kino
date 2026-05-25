@@ -26,6 +26,7 @@ const panelVariants = {
 
 type MovieCardProps = {
   movie: Movie
+  rank?: number
   expandDirection?: "left" | "center" | "right"
   userRating?: UserRating | null
   pending?: boolean
@@ -35,6 +36,7 @@ type MovieCardProps = {
 
 export function MovieCard({
   movie,
+  rank,
   expandDirection = "center",
   userRating = null,
   pending = false,
@@ -72,20 +74,56 @@ export function MovieCard({
         setExpanded(false)
       }}
     >
-      {/* Base card — landscape 16:9 */}
-      <div
-        className={cn(
-          "aspect-video w-full rounded bg-zinc-800 bg-cover bg-center transition-opacity duration-200",
-          expanded && "opacity-0",
-        )}
-        style={{ backgroundImage: backdrop ? `url(${backdrop})` : undefined }}
-      >
-        {!backdrop && (
-          <div className="grid h-full place-items-center p-3 text-center text-xs font-semibold leading-snug text-white/50">
-            {movie.title}
+      {/* Ranked number — shown for Top 10 rows */}
+      {rank !== undefined && (
+        <div className="flex items-end">
+          <span
+            className="shrink-0 select-none font-black leading-none text-zinc-800"
+            style={{
+              fontSize: "clamp(64px, 9vw, 110px)",
+              WebkitTextStroke: "2px rgba(255,255,255,0.18)",
+              marginRight: "-6px",
+              marginBottom: "-2px",
+              zIndex: 1,
+            }}
+          >
+            {rank}
+          </span>
+          {/* Card image sits to the right of the number */}
+          <div className="relative flex-1 min-w-0">
+            <div
+              className={cn(
+                "aspect-[2/3] w-full rounded bg-zinc-800 bg-cover bg-center transition-opacity duration-200",
+                expanded && "opacity-0",
+              )}
+              style={{ backgroundImage: backdrop ? `url(${backdrop})` : undefined }}
+            >
+              {!backdrop && (
+                <div className="grid h-full place-items-center p-3 text-center text-xs font-semibold leading-snug text-white/50">
+                  {movie.title}
+                </div>
+              )}
+            </div>
           </div>
-        )}
-      </div>
+        </div>
+      )}
+
+      {/* Base card — landscape 16:9 (standard rows) */}
+      {rank === undefined && (
+        <div
+          className={cn(
+            "aspect-video w-full rounded bg-zinc-800 bg-cover bg-center transition-opacity duration-200",
+            expanded && "opacity-0",
+          )}
+          style={{ backgroundImage: backdrop ? `url(${backdrop})` : undefined }}
+        >
+          {!backdrop && (
+            <div className="grid h-full place-items-center p-3 text-center text-xs font-semibold leading-snug text-white/50">
+              {movie.title}
+            </div>
+          )}
+        </div>
+      )}
 
 
       {/* Expanded hover panel */}
