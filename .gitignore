@@ -23,6 +23,13 @@ apps/web/out/
 # ML data (large; download separately)
 ml/data/
 
+# ML intermediate artifacts (large binaries duplicated in apps/api/app/artifacts/)
+ml/artifacts/tmdb_cache.json
+
+# Internal planning docs (not relevant to the public repo)
+NETFLIX_UI_SPEC.md
+TASKS.md
+
 # IDE
 .idea/
 .vscode/
