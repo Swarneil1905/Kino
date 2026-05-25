@@ -24,6 +24,23 @@ async def get_recommendations(
     return RecommendationResponse(movies=movies, cache_hit=cache_hit, computed_at=computed_at)
 
 
+@router.get("/cold-start")
+async def cold_start_recommendations(
+    request: Request,
+    db: Annotated[AsyncSession, Depends(get_db)],
+    genres: str = Query(..., description="Comma-separated genre names, e.g. Action,Drama,Sci-Fi"),
+    limit: int = Query(default=20, ge=1, le=50),
+) -> dict[str, list[MovieOut]]:
+    """Return personalised recommendations for a new user based on genre preferences only.
+
+    No ratings or account required — this powers the onboarding genre picker.
+    """
+    engine = request.app.state.recommendation_engine
+    genre_list = [g.strip() for g in genres.split(",") if g.strip()]
+    movies = await engine.cold_start(db, genre_list, limit=limit)
+    return {"movies": movies}
+
+
 @router.get("/similar/{movie_id}")
 async def similar_movies(
     movie_id: int,
