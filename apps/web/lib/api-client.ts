@@ -115,6 +115,12 @@ export const api = {
       request<{ movies: ApiMovie[]; cache_hit: boolean; computed_at: string }>(`/recommendations?limit=${limit}`).then(
         (d) => ({ ...d, movies: d.movies.map(mapMovie) }),
       ),
+    coldStart: (genres: string[], limit = 20) =>
+      request<{ movies: ApiMovie[] }>(
+        `/recommendations/cold-start?genres=${encodeURIComponent(genres.join(","))}&limit=${limit}`,
+        {},
+        false, // no auth required — new users don't have a token yet
+      ).then((d) => ({ movies: d.movies.map(mapMovie) })),
     similar: (movieId: number, limit = 10) =>
       request<{ movies: ApiMovie[] }>(`/recommendations/similar/${movieId}?limit=${limit}`).then((d) => ({
         movies: d.movies.map(mapMovie),
