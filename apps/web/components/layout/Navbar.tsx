@@ -7,6 +7,7 @@ import { useEffect, useState } from "react"
 
 import { useScrollPosition } from "@/hooks/useScrollPosition"
 import { cn } from "@/lib/utils"
+import { api } from "@/lib/api-client"
 
 export function Navbar() {
   const scrollY = useScrollPosition()
@@ -14,6 +15,7 @@ export function Navbar() {
   const [searchOpen, setSearchOpen] = useState(false)
   const [searchQuery, setSearchQuery] = useState("")
   const [isLoggedIn, setIsLoggedIn] = useState(false)
+  const [isAdmin, setIsAdmin] = useState(false)
   const [userInitial, setUserInitial] = useState("K")
 
   useEffect(() => {
@@ -22,6 +24,11 @@ export function Navbar() {
       const email = localStorage.getItem("kino_email")
       setIsLoggedIn(!!token)
       if (email) setUserInitial(email[0].toUpperCase())
+      if (token) {
+        api.auth.me().then((u) => setIsAdmin(u.is_admin ?? false)).catch(() => setIsAdmin(false))
+      } else {
+        setIsAdmin(false)
+      }
     }
     sync()
     window.addEventListener("kino:signout", sync)
@@ -44,6 +51,7 @@ export function Navbar() {
     { label: "My List", href: "/" },
     { label: "Browse by Languages", href: "/" },
     { label: "Metrics", href: "/metrics" },
+    ...(isAdmin ? [{ label: "Admin", href: "/admin" }] : []),
   ]
 
   return (
