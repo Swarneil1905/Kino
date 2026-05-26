@@ -7,7 +7,7 @@ logging.basicConfig(level=logging.INFO)
 
 from app.core.config import settings
 from app.core.lifespan import lifespan
-from app.routers import auth, metrics, movies, ratings, recommendations
+from app.routers import admin, auth, metrics, movies, ratings, recommendations
 
 app = FastAPI(title="Kino API", version="0.1.0", lifespan=lifespan)
 
@@ -30,3 +30,4 @@ app.include_router(movies.router)
 app.include_router(ratings.router)
 app.include_router(recommendations.router)
 app.include_router(metrics.router)
+app.include_router(admin.router)
