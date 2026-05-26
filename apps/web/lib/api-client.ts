@@ -26,6 +26,16 @@ type ApiMovie = {
   vote_average: number
 }
 
+export type AdminUserRecord = {
+  id: string
+  email: string
+  auth_provider: string
+  is_admin: boolean
+  last_login_at: string | null
+  created_at: string
+  rating_count: number
+}
+
 function mapMovie(movie: ApiMovie): Movie {
   return {
     id: movie.id,
@@ -82,7 +92,7 @@ export const api = {
         { method: "POST", body: JSON.stringify({ email, password }) },
         false,
       ),
-    me: () => request<{ id: string; email: string; rating_count: number }>("/auth/me"),
+    me: () => request<{ id: string; email: string; rating_count: number; is_admin: boolean; auth_provider: string }>("/auth/me"),
   },
   movies: {
     trending: (limit = 30) =>
@@ -125,7 +135,7 @@ export const api = {
       request<{ movies: ApiMovie[] }>(
         `/recommendations/cold-start?genres=${encodeURIComponent(genres.join(","))}&limit=${limit}`,
         {},
-        false, // no auth required — new users don't have a token yet
+        false, // no auth required -- new users don't have a token yet
       ).then((d) => ({ movies: d.movies.map(mapMovie) })),
     similar: (movieId: number, limit = 10) =>
       request<{ movies: ApiMovie[] }>(`/recommendations/similar/${movieId}?limit=${limit}`).then((d) => ({
@@ -138,5 +148,8 @@ export const api = {
   },
   metrics: {
     get: () => request<ModelMetrics>("/metrics"),
+  },
+  admin: {
+    users: () => request<AdminUserRecord[]>("/admin/users"),
   },
 }
