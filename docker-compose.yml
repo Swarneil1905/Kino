@@ -34,6 +34,8 @@ services:
       SECRET_KEY: dev-secret-replace-in-production-with-64-char-random-string
       ALGORITHM: HS256
       ACCESS_TOKEN_EXPIRE_DAYS: 7
+      GOOGLE_CLIENT_ID: ${GOOGLE_CLIENT_ID:-}
+      ADMIN_EMAIL: ${ADMIN_EMAIL:-}
     ports:
       - "8000:8000"
     depends_on:
