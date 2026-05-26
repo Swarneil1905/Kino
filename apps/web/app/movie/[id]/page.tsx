@@ -7,10 +7,11 @@ import { fetchMovie } from "@/lib/tmdb"
 import type { Movie } from "@/lib/types"
 import { imageUrl } from "@/lib/utils"
 
-type PageProps = { params: { id: string } }
+type PageProps = { params: Promise<{ id: string }> }
 
 export default async function MoviePage({ params }: PageProps) {
-  const movie = await fetchMovie(Number(params.id))
+  const { id } = await params
+  const movie = await fetchMovie(Number(id))
   if (!movie) notFound()
 
   const backdrop = imageUrl(movie.backdropPath, "original")
