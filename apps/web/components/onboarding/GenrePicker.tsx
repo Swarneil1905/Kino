@@ -128,6 +128,6 @@ export function GenrePicker({ onComplete }: GenrePickerProps) {
         </button>
 
       </div>
-    </div>
+     </div>
   )
 }
