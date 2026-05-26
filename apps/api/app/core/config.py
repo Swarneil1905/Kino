@@ -13,6 +13,7 @@ class Settings(BaseSettings):
     algorithm: str = "HS256"
     access_token_expire_days: int = 7
     cors_origins: list[str] = Field(default_factory=lambda: ["http://localhost:3000"])
+    admin_email: str = ""
 
 
 @lru_cache
