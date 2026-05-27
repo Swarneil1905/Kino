@@ -4,6 +4,7 @@ import { Bell, LogOut, Search } from "lucide-react"
 import Link from "next/link"
 import { useRouter } from "next/navigation"
 import { useEffect, useState } from "react"
+import { useSession } from "next-auth/react"
 
 import { useScrollPosition } from "@/hooks/useScrollPosition"
 import { cn } from "@/lib/utils"
@@ -12,6 +13,7 @@ import { api } from "@/lib/api-client"
 export function Navbar() {
   const scrollY = useScrollPosition()
   const router = useRouter()
+  const { data: session } = useSession()
   const [searchOpen, setSearchOpen] = useState(false)
   const [searchQuery, setSearchQuery] = useState("")
   const [isLoggedIn, setIsLoggedIn] = useState(false)
@@ -19,27 +21,30 @@ export function Navbar() {
   const [userInitial, setUserInitial] = useState("K")
 
   useEffect(() => {
-    const sync = () => {
-      const token = localStorage.getItem("kino_token")
-      const email = localStorage.getItem("kino_email")
-      setIsLoggedIn(!!token)
-      if (email) setUserInitial(email[0].toUpperCase())
-      if (token) {
-        api.auth.me().then((u) => setIsAdmin(u.is_admin ?? false)).catch(() => setIsAdmin(false))
-      } else {
-        setIsAdmin(false)
-      }
+    const localToken = localStorage.getItem("kino_token")
+    const localEmail = localStorage.getItem("kino_email")
+    const kinoToken = localToken || session?.kinoToken || null
+    const email = localEmail || session?.user?.email || null
+    // Logged in if we have a Kino token OR a NextAuth session
+    const loggedIn = !!(kinoToken || session?.user)
+
+    setIsLoggedIn(loggedIn)
+    if (email) setUserInitial(email[0].toUpperCase())
+
+    if (kinoToken) {
+      api.auth.me().then((u) => setIsAdmin(u.is_admin ?? false)).catch(() => setIsAdmin(false))
+    } else {
+      setIsAdmin(false)
     }
-    sync()
-    window.addEventListener("kino:signout", sync)
-    return () => window.removeEventListener("kino:signout", sync)
-  }, [])
+  }, [session])
 
   const handleSignOut = () => {
     localStorage.removeItem("kino_token")
     localStorage.removeItem("kino_user_id")
     localStorage.removeItem("kino_email")
+    localStorage.removeItem("kino_onboarded")
     setIsLoggedIn(false)
+    setIsAdmin(false)
     router.push("/login")
   }
 
