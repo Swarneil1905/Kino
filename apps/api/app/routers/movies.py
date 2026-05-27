@@ -15,7 +15,7 @@ router = APIRouter(prefix="/movies", tags=["movies"])
 async def list_movies(
     db: Annotated[AsyncSession, Depends(get_db)],
     page: int = Query(default=1, ge=1),
-    limit: int = Query(default=20, ge=1, le=50),
+    limit: int = Query(default=20, ge=1, le=100),
     genre: str | None = None,
     year: int | None = None,
 ) -> MovieListOut:
