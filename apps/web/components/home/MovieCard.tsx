@@ -5,6 +5,7 @@ import { ChevronDown, Play, Plus, ThumbsDown, ThumbsUp } from "lucide-react"
 import Link from "next/link"
 import { useEffect, useRef, useState } from "react"
 
+import { useImpressionClick } from "@/hooks/useImpressionClick"
 import type { Movie, UserRating } from "@/lib/types"
 import { cn, imageUrl } from "@/lib/utils"
 
@@ -42,6 +43,7 @@ export function MovieCard({
   onRate,
   onMoreInfo,
 }: MovieCardProps) {
+  const recordClick = useImpressionClick()
   const [expanded, setExpanded] = useState(false)
   const [localRating, setLocalRating] = useState<UserRating | null>(userRating)
   const timerRef = useRef<ReturnType<typeof setTimeout> | null>(null)
@@ -237,7 +239,7 @@ export function MovieCard({
                     className="ml-auto grid h-8 w-8 shrink-0 place-items-center rounded-full border transition-colors hover:border-white"
                     style={{ borderColor: "rgba(255,255,255,0.3)", color: "var(--text)" }}
                     aria-label="More info"
-                    onClick={() => onMoreInfo?.(movie)}
+                    onClick={() => { onMoreInfo?.(movie); recordClick(movie.id) }}
                   >
                     <ChevronDown size={16} />
                   </Link>
