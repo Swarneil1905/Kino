@@ -82,8 +82,11 @@ async def seed_movies(session: AsyncSession, max_movies: int = 1000) -> int:
                 "popularity_score": float(1000 - mid),
             })
 
-    stmt = insert(Movie).values(movies)
-    stmt = stmt.on_conflict_do_nothing(index_elements=["id"])
-    await session.execute(stmt)
+    BATCH_SIZE = 2500
+    for i in range(0, len(movies), BATCH_SIZE):
+        batch = movies[i : i + BATCH_SIZE]
+        stmt = insert(Movie).values(batch)
+        stmt = stmt.on_conflict_do_nothing(index_elements=["id"])
+        await session.execute(stmt)
     await session.commit()
     return len(movies)
