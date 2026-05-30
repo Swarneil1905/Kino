@@ -1,7 +1,7 @@
 """add impressions table
 
-Revision ID: 003_impressions
-Revises: 002_google_oauth_admin
+Revision ID: 003
+Revises: 002
 Create Date: 2026-05-30
 """
 from __future__ import annotations
@@ -11,8 +11,8 @@ from alembic import op
 import sqlalchemy as sa
 from sqlalchemy.dialects import postgresql
 
-revision = "003_impressions"
-down_revision = "002_google_oauth_admin"
+revision = "003"
+down_revision = "002"
 branch_labels = None
 depends_on = None
 
