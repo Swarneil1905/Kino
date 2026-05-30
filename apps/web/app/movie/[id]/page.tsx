@@ -3,6 +3,7 @@ import Link from "next/link"
 import { notFound } from "next/navigation"
 
 import { ContentRow } from "@/components/home/ContentRow"
+import { ImpressionTracker } from "@/components/ui/ImpressionTracker"
 import { fetchMovie } from "@/lib/tmdb"
 import type { Movie } from "@/lib/types"
 import { imageUrl } from "@/lib/utils"
