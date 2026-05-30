@@ -1,9 +1,14 @@
 import logging
+import sys
 
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
-logging.basicConfig(level=logging.INFO)
+logging.basicConfig(
+    level=logging.INFO,
+    stream=sys.stdout,
+    format="%(levelname)s:%(name)s:%(message)s",
+)
 
 from app.core.config import settings
 from app.core.lifespan import lifespan
