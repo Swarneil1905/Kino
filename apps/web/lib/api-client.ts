@@ -145,11 +145,15 @@ export const api = {
       request<{ status?: string; computed_at: string; movies?: ApiMovie[] }>(`/recommendations/refresh?limit=${limit}`, {
         method: "POST",
       }),
+    click: (movieId: number) =>
+      request<{ status: string }>(`/recommendations/click/${movieId}`, { method: "POST" }).catch(() => ({ status: "skipped" })),
   },
   metrics: {
     get: () => request<ModelMetrics>("/metrics"),
   },
   admin: {
     users: () => request<AdminUserRecord[]>("/admin/users"),
+    deleteUser: (userId: string) =>
+      request<{ status: string }>(`/admin/users/${userId}`, { method: "DELETE" }),
   },
 }
