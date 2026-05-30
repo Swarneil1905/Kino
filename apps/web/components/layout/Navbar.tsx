@@ -25,7 +25,6 @@ export function Navbar() {
     const localEmail = localStorage.getItem("kino_email")
     const kinoToken = localToken || session?.kinoToken || null
     const email = localEmail || session?.user?.email || null
-    // Logged in if we have a Kino token OR a NextAuth session
     const loggedIn = !!(kinoToken || session?.user)
 
     setIsLoggedIn(loggedIn)
@@ -45,71 +44,116 @@ export function Navbar() {
     localStorage.removeItem("kino_onboarded")
     setIsLoggedIn(false)
     setIsAdmin(false)
+    window.dispatchEvent(new Event("kino:signout"))
     router.push("/login")
   }
 
   const navLinks: { label: string; href: string }[] = [
     { label: "Home", href: "/" },
-    { label: "TV Shows", href: "/" },
     { label: "Movies", href: "/" },
-    { label: "New & Popular", href: "/" },
-    { label: "My List", href: "/" },
-    { label: "Browse by Languages", href: "/" },
+    { label: "Series", href: "/" },
+    { label: "Documentaries", href: "/" },
+    { label: "Anime", href: "/" },
+    { label: "Sports", href: "/" },
     { label: "Metrics", href: "/metrics" },
     ...(isAdmin ? [{ label: "Admin", href: "/admin" }] : []),
   ]
 
+  const solid = scrollY > 60
+
   return (
     <header
       className={cn(
-        "fixed inset-x-0 top-0 z-50 flex h-16 items-center justify-between px-5 transition-colors duration-500 md:px-14",
-        scrollY > 60 ? "bg-kino-background" : "bg-gradient-to-b from-black/80 to-transparent",
+        "fixed inset-x-0 top-0 z-50 flex h-16 items-center justify-between px-6 transition-all duration-300 md:px-12",
+        solid
+          ? "border-b border-white/5 bg-[rgba(11,11,11,0.97)] backdrop-blur-sm"
+          : "bg-gradient-to-b from-black/70 to-transparent",
       )}
     >
+      {/* Left: wordmark + nav */}
       <div className="flex items-center gap-8">
-        <Link href="/" className="text-2xl font-black tracking-normal text-kino-red">
-          Kino
+        <Link
+          href="/"
+          className="select-none font-serif text-[22px] font-bold tracking-tight text-[#C41020]"
+          style={{ letterSpacing: "-0.01em" }}
+        >
+          KINO
         </Link>
-        <nav className="hidden items-center gap-5 text-sm text-white/70 md:flex">
+        <nav className="hidden items-center gap-5 md:flex">
           {navLinks.map((link) => (
             <Link
               key={link.label}
               href={link.href}
-              className="transition-colors hover:text-white"
+              className="text-[13px] font-medium text-[#9E9C96] transition-colors duration-200 hover:text-[#F0EEE8]"
             >
               {link.label}
             </Link>
           ))}
           {!isLoggedIn && (
-            <Link href="/login" className="transition-colors hover:text-white">Sign In</Link>
+            <Link
+              href="/login"
+              className="text-[13px] font-medium text-[#9E9C96] transition-colors hover:text-[#F0EEE8]"
+            >
+              Sign In
+            </Link>
           )}
         </nav>
       </div>
 
-      <div className="flex items-center gap-4">
-        <div className="flex items-center border border-white/70 bg-black/30">
-          <button className="grid h-8 w-8 place-items-center" onClick={() => setSearchOpen((v) => !v)} aria-label="Search">
-            <Search size={18} />
+      {/* Right: search, bell, avatar */}
+      <div className="flex items-center gap-3">
+        <div
+          className={cn(
+            "flex items-center gap-1 rounded border border-white/15 bg-black/30 transition-all duration-300",
+            searchOpen ? "pl-3 pr-1" : "px-1",
+          )}
+        >
+          <button
+            className="grid h-8 w-8 shrink-0 place-items-center text-[#9E9C96] hover:text-[#F0EEE8]"
+            onClick={() => setSearchOpen((v) => !v)}
+            aria-label="Search"
+          >
+            <Search size={17} />
           </button>
           <input
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
-            className={cn("h-8 bg-transparent text-sm outline-none transition-[width] duration-300", searchOpen ? "w-44 px-2" : "w-0 px-0")}
+            className={cn(
+              "h-8 bg-transparent text-[13px] text-[#F0EEE8] placeholder-[#565650] outline-none transition-[width] duration-300",
+              searchOpen ? "w-40" : "w-0",
+            )}
             placeholder="Titles, genres"
           />
         </div>
-        <Bell size={20} />
+
+        <button
+          className="grid h-8 w-8 place-items-center text-[#9E9C96] hover:text-[#F0EEE8]"
+          aria-label="Notifications"
+        >
+          <Bell size={17} />
+        </button>
+
         {isLoggedIn ? (
           <div className="flex items-center gap-2">
-            <div className="grid h-8 w-8 place-items-center rounded bg-kino-red text-xs font-bold">
+            <div
+              className="grid h-8 w-8 place-items-center rounded-[10px] text-[11px] font-bold text-white"
+              style={{ background: "var(--accent)", letterSpacing: "0.04em" }}
+            >
               {userInitial}
             </div>
-            <button onClick={handleSignOut} className="grid h-8 w-8 place-items-center rounded text-white/60 hover:text-white" aria-label="Sign out" title="Sign out">
-              <LogOut size={16} />
+            <button
+              onClick={handleSignOut}
+              className="grid h-8 w-8 place-items-center rounded text-[#565650] transition-colors hover:text-[#F0EEE8]"
+              aria-label="Sign out"
+              title="Sign out"
+            >
+              <LogOut size={15} />
             </button>
           </div>
         ) : (
-          <div className="grid h-8 w-8 place-items-center rounded bg-white/10 text-xs font-bold text-white/40">?</div>
+          <div className="grid h-8 w-8 place-items-center rounded-[10px] bg-white/10 text-[11px] font-bold text-[#565650]">
+            ?
+          </div>
         )}
       </div>
     </header>
