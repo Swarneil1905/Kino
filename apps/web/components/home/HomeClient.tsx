@@ -52,7 +52,7 @@ export function HomeClient({ featured, fallbackRows, initialRatings = {} }: Home
     status === "success" && rows[0]?.movies[0] ? rows[0].movies[0] : featured
 
   return (
-    <main className="min-h-screen bg-netflix-black">
+    <main className="min-h-screen bg-[var(--bg)]">
       {showPicker && <GenrePicker onComplete={completePicker} />}
       <HeroBanner movie={featuredMovie} />
       <div className="relative z-10 -mt-24 space-y-2 pb-20">
