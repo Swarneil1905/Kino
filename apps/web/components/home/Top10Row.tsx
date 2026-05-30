@@ -57,7 +57,7 @@ export function Top10Row({ row }: Top10RowProps) {
       <div className="mb-2 flex items-baseline gap-3 px-5 md:px-14">
         <h2 className="text-[18px] font-bold tracking-tight text-white">{row.title}</h2>
         <span
-          className="flex items-center text-[13px] font-semibold text-kino-cyan transition-opacity duration-300"
+          className="flex items-center text-[13px] font-semibold text-[#54B9C5] transition-opacity duration-300"
           style={{ opacity: hovering && totalPages > 1 ? 1 : 0 }}
         >
           Explore All
