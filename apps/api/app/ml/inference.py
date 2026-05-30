@@ -110,6 +110,7 @@ class RecommendationEngine:
         user_id: UUID | None,
         limit: int = 20,
         force_refresh: bool = False,
+        mmr_lambda: float = 0.7,
     ) -> tuple[list[MovieOut], bool, datetime]:
         now = datetime.now(timezone.utc)
         cache_key = f"rec:{user_id}" if user_id else None
@@ -164,9 +165,9 @@ class RecommendationEngine:
                 item_embeddings=self.item_embeddings,
                 relevance_scores=rel_scores,
                 k=limit,
-                lam=0.7,
+                lam=mmr_lambda,
             )
-            logger.info("[MMR] user=%s | pool: %d → diverse top: %d", user_id, len(pre_ranked), len(ranked_ids))
+            logger.info("[MMR] user=%s | lambda=%.2f | pool: %d → diverse top: %d", user_id, mmr_lambda, len(pre_ranked), len(ranked_ids))
         else:
             ranked_ids = pre_ranked[:limit]
 
