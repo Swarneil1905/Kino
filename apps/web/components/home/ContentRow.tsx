@@ -12,16 +12,16 @@ import { MovieCard } from "./MovieCard"
 
 function pageVariants(direction: 1 | -1) {
   return {
-    enter: { x: direction * 36, opacity: 0 },
+    enter: { x: direction * 32, opacity: 0 },
     center: {
       x: 0,
       opacity: 1,
-      transition: { duration: 0.28, ease: [0.25, 0.46, 0.45, 0.94] },
+      transition: { duration: 0.26, ease: [0.25, 0.46, 0.45, 0.94] },
     },
     exit: {
-      x: direction * -36,
+      x: direction * -32,
       opacity: 0,
-      transition: { duration: 0.18, ease: "easeIn" },
+      transition: { duration: 0.16, ease: "easeIn" },
     },
   }
 }
@@ -49,22 +49,18 @@ export function ContentRow({ row, ratings = {}, pending, onRate, onMoreInfo }: C
 
   return (
     <section
-      className="relative -my-10 py-10"
+      className="relative py-6"
       onMouseEnter={() => setHovering(true)}
       onMouseLeave={() => setHovering(false)}
     >
       {/* Row header */}
-      <div className="mb-2 flex items-baseline gap-3 px-5 md:px-14">
-        <h2 className="text-[18px] font-bold tracking-tight text-white">{row.title}</h2>
-
-        {/* Explore All — fades in on row hover */}
-        <span
-          className="flex items-center text-[13px] font-semibold text-kino-cyan transition-opacity duration-300"
-          style={{ opacity: hovering && totalPages > 1 ? 1 : 0 }}
+      <div className="mb-3 flex items-baseline gap-3 px-6 md:px-12">
+        <h2
+          className="text-[18px] font-semibold"
+          style={{ color: "var(--text)", letterSpacing: "-0.01em" }}
         >
-          Explore All
-          <ChevronRight className="ml-1 inline-block" size={10} />
-        </span>
+          {row.title}
+        </h2>
 
         {/* Page indicator dots */}
         <div
@@ -74,17 +70,18 @@ export function ContentRow({ row, ratings = {}, pending, onRate, onMoreInfo }: C
           {Array.from({ length: totalPages }).map((_, index) => (
             <span
               key={index}
-              className={cn(
-                "block h-[2px] rounded-sm transition-all",
-                index === page ? "w-4 bg-white" : "w-3 bg-white/35",
-              )}
+              className={cn("block h-[2px] rounded-sm transition-all duration-200")}
+              style={{
+                width: index === page ? "16px" : "12px",
+                background: index === page ? "var(--text)" : "rgba(255,255,255,0.25)",
+              }}
             />
           ))}
         </div>
       </div>
 
       {/* Slider */}
-      <div className="relative overflow-visible px-5 md:px-14">
+      <div className="relative overflow-visible px-6 md:px-12">
         <AnimatePresence mode="wait" custom={direction}>
           <motion.div
             key={page}
@@ -93,7 +90,7 @@ export function ContentRow({ row, ratings = {}, pending, onRate, onMoreInfo }: C
             initial="enter"
             animate="center"
             exit="exit"
-            className="grid gap-2"
+            className="grid gap-3"
             style={{ gridTemplateColumns: `repeat(${itemsPerPage}, 1fr)` }}
           >
             {visibleMovies.map((movie, index) => (
@@ -117,24 +114,30 @@ export function ContentRow({ row, ratings = {}, pending, onRate, onMoreInfo }: C
           </motion.div>
         </AnimatePresence>
 
-        {/* Nav arrows */}
+        {/* Gradient nav arrows */}
         {totalPages > 1 && (
           <>
             <button
-              className="absolute left-0 top-0 grid h-full w-11 place-items-center bg-black/50 transition-all duration-300 hover:bg-black/75"
-              style={{ opacity: hovering ? 1 : 0 }}
+              className="absolute left-0 top-0 flex h-full w-12 items-center justify-center transition-opacity duration-300"
+              style={{
+                opacity: hovering ? 1 : 0,
+                background: "linear-gradient(to right, rgba(11,11,11,0.85), transparent)",
+              }}
               onClick={() => go(-1)}
               aria-label="Previous page"
             >
-              <ChevronLeft size={26} />
+              <ChevronLeft size={24} style={{ color: "var(--text)" }} />
             </button>
             <button
-              className="absolute right-0 top-0 grid h-full w-11 place-items-center bg-black/50 transition-all duration-300 hover:bg-black/75"
-              style={{ opacity: hovering ? 1 : 0 }}
+              className="absolute right-0 top-0 flex h-full w-12 items-center justify-center transition-opacity duration-300"
+              style={{
+                opacity: hovering ? 1 : 0,
+                background: "linear-gradient(to left, rgba(11,11,11,0.85), transparent)",
+              }}
               onClick={() => go(1)}
               aria-label="Next page"
             >
-              <ChevronRight size={26} />
+              <ChevronRight size={24} style={{ color: "var(--text)" }} />
             </button>
           </>
         )}
