@@ -9,3 +9,4 @@ class RecommendationResponse(BaseModel):
     movies: list[MovieOut]
     cache_hit: bool
     computed_at: datetime
+    model_version: str = "v1-baseline"
