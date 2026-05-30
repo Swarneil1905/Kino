@@ -16,7 +16,7 @@ async def lifespan(app: FastAPI) -> AsyncIterator[None]:
     await init_database()
 
     async with AsyncSessionLocal() as session:
-        await seed_movies(session)
+        await seed_movies(session, max_movies=3000)
         await seed_demo_accounts(session)
 
     engine = RecommendationEngine()
