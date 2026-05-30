@@ -7,6 +7,7 @@ from app.models.movie import Movie  # noqa: F401
 from app.models.rating import Rating  # noqa: F401
 from app.models.user import User  # noqa: F401
 from app.models.user_embedding import UserEmbedding  # noqa: F401
+from app.models.impression import Impression  # noqa: F401
 
 
 async def init_database() -> None:
