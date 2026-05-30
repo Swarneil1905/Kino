@@ -17,7 +17,7 @@ SEED_DATA_PATH = SCRIPTS_DIR / "movielens_seed_data.json"
 
 async def seed_movies(session: AsyncSession, max_movies: int = 1000) -> int:
     count_result = await session.execute(select(func.count()).select_from(Movie))
-    if int(count_result.scalar_one()) > 0:
+    if int(count_result.scalar_one()) >= max_movies:
         return 0
 
     movies: list[dict] = []
