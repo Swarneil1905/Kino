@@ -5,6 +5,17 @@
 @layer base {
   :root {
     color-scheme: dark;
+    --bg: #0B0B0B;
+    --surface: #181818;
+    --surface2: #252525;
+    --accent: #C41020;
+    --text: #F0EEE8;
+    --text2: #9E9C96;
+    --text3: #565650;
+    --border: rgba(255, 255, 255, 0.07);
+    --r: 6px;
+    --fd: var(--font-playfair), Georgia, serif;
+    --fb: var(--font-dm-sans), system-ui, sans-serif;
   }
   * {
     box-sizing: border-box;
@@ -13,15 +24,27 @@
     scroll-behavior: smooth;
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
+    text-rendering: optimizeLegibility;
   }
   body {
-    background-color: #141414;
-    color: #ffffff;
+    background-color: var(--bg);
+    color: var(--text);
+    font-family: var(--fb);
     overflow-x: hidden;
   }
   ::selection {
-    background-color: #e50914;
+    background-color: var(--accent);
     color: #ffffff;
+  }
+  ::-webkit-scrollbar {
+    width: 4px;
+  }
+  ::-webkit-scrollbar-track {
+    background: transparent;
+  }
+  ::-webkit-scrollbar-thumb {
+    background: #2a2a2a;
+    border-radius: 2px;
   }
 }
 
@@ -36,4 +59,20 @@
   .text-balance {
     text-wrap: balance;
   }
+  .font-serif {
+    font-family: var(--fd);
+  }
+}
+
+@keyframes fadeUp {
+  from { opacity: 0; transform: translateY(12px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to   { opacity: 1; }
+}
+@keyframes scaleIn {
+  from { opacity: 0; transform: scale(0.96); }
+  to   { opacity: 1; transform: scale(1); }
 }
