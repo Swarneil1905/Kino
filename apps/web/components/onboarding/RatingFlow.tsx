@@ -22,10 +22,10 @@ export function RatingFlow({ seedMovies, onComplete }: RatingFlowProps) {
   }
 
   return (
-    <main className="min-h-screen bg-kino-background px-5 py-24 md:px-14">
+    <main className="min-h-screen bg-[var(--bg)] px-5 py-24 md:px-14">
       <div className="mx-auto max-w-6xl">
         <div className="mb-10 text-center">
-          <div className="mb-3 text-4xl font-black text-kino-red">Kino</div>
+          <div className="mb-3 text-4xl font-black text-[var(--accent)]">Kino</div>
           <p className="text-kino-muted">Rate 10 movies so Kino can tune your recommendations.</p>
         </div>
         <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 md:grid-cols-5 lg:grid-cols-10">
@@ -33,7 +33,7 @@ export function RatingFlow({ seedMovies, onComplete }: RatingFlowProps) {
             <SeedCard key={movie.id} movie={movie} rating={ratings[movie.id] ?? null} onRate={rate} />
           ))}
         </div>
-        <div className="sticky bottom-0 mt-10 bg-kino-background/95 py-5">
+        <div className="sticky bottom-0 mt-10 bg-[var(--bg)]/95 py-5">
           <div className="mb-4 h-1 overflow-hidden rounded bg-white/15">
             <div className="h-full bg-kino-red transition-[width]" style={{ width: `${(progress / 10) * 100}%` }} />
           </div>
