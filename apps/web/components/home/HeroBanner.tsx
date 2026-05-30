@@ -1,18 +1,17 @@
 "use client"
 
 import { motion } from "framer-motion"
-import { Info, Play, Volume2, VolumeX } from "lucide-react"
-import { useState } from "react"
+import { Info, Play } from "lucide-react"
 
 import type { Movie } from "@/lib/types"
 import { imageUrl } from "@/lib/utils"
 
-const heroContentVariants = {
-  hidden: { opacity: 0, y: 20 },
+const heroVariants = {
+  hidden: { opacity: 0, y: 16 },
   visible: {
     opacity: 1,
     y: 0,
-    transition: { duration: 0.6, ease: [0.25, 0.46, 0.45, 0.94] },
+    transition: { duration: 0.7, ease: [0.25, 0.46, 0.45, 0.94] },
   },
 }
 
@@ -21,58 +20,115 @@ type HeroBannerProps = {
 }
 
 export function HeroBanner({ movie }: HeroBannerProps) {
-  const [muted, setMuted] = useState(true)
   const backdrop = imageUrl(movie.backdropPath, "original")
+  const genreLabels = movie.genres.slice(0, 3)
 
   return (
-    <section className="relative min-h-[520px] h-[85vh] overflow-hidden">
+    <section className="relative overflow-hidden" style={{ height: "88vh", minHeight: "520px" }}>
+      {/* Backdrop */}
       <div
-        className="absolute inset-0 scale-[1.05] bg-zinc-900 bg-cover bg-center"
+        className="absolute inset-0 scale-[1.04] bg-zinc-900 bg-cover bg-center"
         style={{
           backgroundImage: backdrop
             ? `url(${backdrop})`
-            : "linear-gradient(120deg, #1b1b1b 0%, #303030 50%, #101010 100%)",
+            : "linear-gradient(145deg, #03000D 0%, #0D0030 45%, #1E0050 75%, #0A0020 100%)",
         }}
       />
-      {/* Left vignette — makes text legible against any backdrop */}
-      <div className="absolute inset-0 bg-gradient-to-r from-kino-background/90 via-kino-background/40 to-transparent" />
-      {/* Bottom fade — blends into content rows */}
-      <div className="absolute inset-0 bg-gradient-to-t from-kino-background via-transparent to-transparent" />
-      {/* Top fade — softens top edge behind navbar */}
-      <div className="absolute inset-x-0 top-0 h-32 bg-gradient-to-b from-black/60 to-transparent" />
 
+      {/* Left fog gradient */}
+      <div className="absolute inset-0 bg-gradient-to-r from-[#0B0B0B] via-[#0B0B0B]/60 to-transparent" />
+      {/* Bottom fade */}
+      <div className="absolute inset-0 bg-gradient-to-t from-[#0B0B0B] via-[#0B0B0B]/20 to-transparent" />
+      {/* Top fade */}
+      <div className="absolute inset-x-0 top-0 h-28 bg-gradient-to-b from-black/50 to-transparent" />
+
+      {/* Content block */}
       <motion.div
-        className="absolute bottom-28 left-5 max-w-[500px] md:left-14"
-        variants={heroContentVariants}
+        className="absolute bottom-32 left-6 max-w-[520px] md:left-12"
+        variants={heroVariants}
         initial="hidden"
         animate="visible"
       >
-        <div className="mb-3 text-[11px] font-bold uppercase tracking-[3px] text-kino-red">Kino Pick</div>
-        <h1 className="mb-4 text-5xl font-black leading-none md:text-6xl">{movie.title}</h1>
-        <div className="mb-4 flex items-center gap-3 text-sm font-semibold">
-          <span className="text-kino-green">{movie.matchPercent}% Match</span>
-          <span>{movie.releaseYear}</span>
-          <span className="border border-white/50 px-1 text-xs">{movie.maturityRating}</span>
-          <span>{movie.duration}</span>
+        {/* Kino Original badge */}
+        <div
+          className="mb-4 inline-block text-[10px] font-bold uppercase"
+          style={{ color: "var(--accent)", letterSpacing: "0.12em" }}
+        >
+          Kino Original
         </div>
-        <p className="mb-6 line-clamp-3 text-lg leading-snug text-white/75">{movie.overview}</p>
+
+        {/* Playfair Display serif title */}
+        <h1
+          className="mb-4 font-serif font-bold text-balance"
+          style={{
+            fontSize: "clamp(42px, 6vw, 72px)",
+            letterSpacing: "-0.025em",
+            lineHeight: 1.0,
+            color: "var(--text)",
+          }}
+        >
+          {movie.title}
+        </h1>
+
+        {/* Meta row */}
+        <div className="mb-4 flex flex-wrap items-center gap-x-3 gap-y-1 text-[13px] font-semibold">
+          <span style={{ color: "#4ADE80" }}>{movie.matchPercent}% Match</span>
+          <span style={{ color: "var(--text2)" }}>{movie.releaseYear}</span>
+          <span
+            className="border px-1 text-[11px] font-normal"
+            style={{ borderColor: "rgba(255,255,255,0.3)", color: "var(--text2)" }}
+          >
+            {movie.maturityRating}
+          </span>
+          {movie.duration && <span style={{ color: "var(--text2)" }}>{movie.duration}</span>}
+          {genreLabels.length > 0 && (
+            <span style={{ color: "var(--text3)" }}>{genreLabels.join(" · ")}</span>
+          )}
+        </div>
+
+        {/* Description */}
+        <p
+          className="mb-6 line-clamp-3 text-[15px] leading-relaxed"
+          style={{ color: "rgba(240,238,232,0.7)" }}
+        >
+          {movie.overview}
+        </p>
+
+        {/* Actions */}
         <div className="flex gap-3">
-          <button className="flex items-center gap-2 rounded bg-white px-6 py-2.5 font-bold text-black transition-colors hover:bg-white/85">
-            <Play size={20} fill="currentColor" /> Play
+          <button
+            className="flex items-center gap-2 px-7 py-2.5 text-[14px] font-semibold text-black transition-opacity hover:opacity-85"
+            style={{ background: "var(--text)", borderRadius: "var(--r)" }}
+          >
+            <Play size={18} fill="currentColor" />
+            Play
           </button>
-          <button className="flex items-center gap-2 rounded bg-[#6d6d6e]/70 px-6 py-2.5 font-bold text-white transition-colors hover:bg-[#6d6d6e]/40">
-            <Info size={20} /> More Info
+          <button
+            className="flex items-center gap-2 px-6 py-2.5 text-[14px] font-semibold transition-colors hover:bg-white/15"
+            style={{
+              background: "rgba(240,238,232,0.12)",
+              border: "1px solid rgba(255,255,255,0.15)",
+              borderRadius: "var(--r)",
+              color: "var(--text)",
+            }}
+          >
+            <Info size={18} />
+            More Info
           </button>
         </div>
       </motion.div>
 
-      <button
-        className="absolute bottom-24 right-5 grid h-10 w-10 place-items-center rounded-full border border-white/40 md:right-14"
-        onClick={() => setMuted((value) => !value)}
-        aria-label={muted ? "Unmute" : "Mute"}
+      {/* Right rail — faint italic genre labels */}
+      <div
+        className="absolute bottom-40 right-12 hidden flex-col items-end gap-2 md:flex"
+        style={{ opacity: 0.22 }}
       >
-        {muted ? <VolumeX size={20} /> : <Volume2 size={20} />}
-      </button>
+        {genreLabels.map((g) => (
+          <span key={g} className="font-serif text-[15px] italic" style={{ color: "var(--text)" }}>
+            {g}
+          </span>
+        ))}
+      </div>
     </section>
   )
 }
